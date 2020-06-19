@@ -16,3 +16,13 @@ a[href] {
 a[href]:hover {
   text-decoration: underline;
 }
+
+button, .button {
+  background: white;
+  border: 1px solid black;
+  border-radius: 1ex;
+  color: black;
+  cursor: pointer;
+  display: inline-block;
+  padding: 1ex;
+}
