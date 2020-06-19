@@ -1,0 +1,18 @@
+html {
+  font-family: sans-serif;
+  line-height: 1.37;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 1rem;
+}
+
+a[href] {
+  text-decoration: none;
+}
+
+a[href]:hover {
+  text-decoration: underline;
+}

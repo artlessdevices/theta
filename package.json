@@ -1,0 +1,46 @@
+{
+  "private": true,
+  "dependencies": {
+    "busboy": "^0.3.1",
+    "commonmark": "^0.29.1",
+    "cookie": "^0.4.1",
+    "do-not-cache": "^1.0.1",
+    "escape-html": "^1.0.3",
+    "lock": "^1.1.0",
+    "nodemailer": "^6.4.8",
+    "pino": "^6.3.2",
+    "pino-http": "^5.2.0",
+    "run-parallel": "^1.1.9",
+    "run-series": "^1.1.8",
+    "secure-password": "^4.0.0",
+    "simple-concat-limit": "^2.0.3",
+    "url-parse": "^1.4.7",
+    "uuid": "^8.1.0"
+  },
+  "devDependencies": {
+    "depcheck": "^0.9.2",
+    "husky": "^4.2.5",
+    "licensee": "^8.1.0",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
+    "simple-concat": "^1.0.0",
+    "sodium-native": "^3.1.1",
+    "standard": "^14.3.3",
+    "tape": "^5.0.1",
+    "webdriverio": "^6.1.16"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run precommit"
+    }
+  },
+  "scripts": {
+    "precommit": "npm run lint",
+    "coverage": "nyc --reporter=lcov --reporter=text npm run test",
+    "deps": "depcheck",
+    "fix": "standard --fix",
+    "licenses": "licensee --errors-only",
+    "lint": "standard",
+    "test": "NODE_ENV=test tape test/*.test.js"
+  }
+}
