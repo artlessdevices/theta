@@ -4,12 +4,13 @@ const assert = require('assert')
 const expired = require('./expired')
 const sodium = require('sodium-native')
 
-exports.generate = ({ action, sessionID }) => {
+exports.generate = ({ action, sessionID, date }) => {
   assert(typeof action === 'string')
   assert(typeof sessionID === 'string')
+  date = date || new Date().toISOString()
+  assert(typeof date === 'string')
 
   const key = Buffer.from(process.env.CSRF_KEY, 'hex')
-  const date = new Date().toISOString()
   const plaintext = `${action}\n${sessionID}\n${date}`
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   sodium.randombytes_buf(nonce)
@@ -44,7 +45,9 @@ exports.verify = ({ action, sessionID, token, nonce }, callback) => {
   const plaintext = Buffer.alloc(ciphertext.length - sodium.crypto_secretbox_MACBYTES)
   const nonceBuffer = Buffer.from(nonce, 'hex')
   if (!sodium.crypto_secretbox_open_easy(plaintext, ciphertext, nonceBuffer, key)) {
-    return callback(new Error('decryption failed'))
+    const error = new Error('decryption failure')
+    error.decryption = true
+    return callback(error)
   }
   const [encryptedAction, encryptedSessionID, date] = plaintext.toString().split('\n')
   if (encryptedAction !== action) {
