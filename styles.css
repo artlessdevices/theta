@@ -18,7 +18,10 @@ a[href]:hover {
 }
 
 #logoutForm {
+  border: none;
   display: inline-block;
+  margin: 0;
+  padding: 0;
 }
 
 button, .button {
@@ -28,5 +31,6 @@ button, .button {
   color: black;
   cursor: pointer;
   display: inline-block;
+  font-size: 100%;
   padding: 1ex;
 }
