@@ -1,3 +1,5 @@
+// `npm start` runs this script by npm convention.
+
 // Logging
 
 const logger = require('pino')()

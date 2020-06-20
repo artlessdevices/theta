@@ -1,3 +1,5 @@
+// HTTP Server Request Handler
+
 const Busboy = require('busboy')
 const constants = require('./constants')
 const cookie = require('cookie')

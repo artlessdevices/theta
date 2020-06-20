@@ -1,3 +1,5 @@
+// Helper Function for Rendering Markdown
+
 const commonmark = require('commonmark')
 
 module.exports = (markup) => {

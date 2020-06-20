@@ -1,3 +1,5 @@
+// Storea and Verify Passwords
+
 const expired = require('./expired')
 const storage = require('./storage')
 const securePassword = require('secure-password')

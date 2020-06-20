@@ -1,3 +1,5 @@
+// Environment Variable Parsing and Validation
+
 const variables = [
   {
     name: 'BASE_HREF',

@@ -1,3 +1,5 @@
+// Cross-Site Request Forgery Token Generation and Verification
+
 const assert = require('assert')
 const expired = require('./expired')
 const sodium = require('sodium-native')

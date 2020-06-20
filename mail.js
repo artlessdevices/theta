@@ -1,3 +1,5 @@
+// Send E-Mail
+
 /* istanbul ignore if */
 if (process.env.NODE_ENV === 'production') {
   const nodemailer = require('nodemailer')
@@ -11,12 +13,13 @@ if (process.env.NODE_ENV === 'production') {
     }
   })
   module.exports = transport.sendMail.bind(transport)
-} else {
+} else /* in testing */ {
+  // Send messages to an EventEmitter.
   const EventEmitter = require('events').EventEmitter
   const emitter = new EventEmitter()
   module.exports = (options, callback) => {
     // This delay prevents tests from visiting account-confirmation
-    // pages before the app has time to index the tokens.
+    // pages before the app has time to persist the tokens.
     setTimeout(() => {
       emitter.emit('sent', options)
       callback()

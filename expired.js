@@ -1,3 +1,5 @@
+// Expiration Policies
+
 exports.csrfToken = (dateString) => expired({
   dateString,
   lifetime: days(7)
