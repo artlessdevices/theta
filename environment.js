@@ -8,6 +8,10 @@ const variables = [
   {
     name: 'CSRF_KEY',
     required: true
+  },
+  {
+    name: 'DIRECTORY',
+    required: true
   }
 ]
 
