@@ -19,5 +19,6 @@ module.exports = () => {
     if (!value) returned.missing.push(name)
     else returned[name] = value
   })
+  returned.production = process.env.NODE_ENV === 'production'
   return returned
 }

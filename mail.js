@@ -1,7 +1,9 @@
 // Send E-Mail
 
+const environment = require('./environment')()
+
 /* istanbul ignore if */
-if (process.env.NODE_ENV === 'production') {
+if (environment.production) {
   const nodemailer = require('nodemailer')
   const transport = nodemailer.createTransport({
     pool: true,

@@ -19,7 +19,7 @@ const runSeries = require('run-series')
 const storage = require('./storage')
 const uuid = require('uuid')
 
-const inProduction = process.env.NODE_ENV === 'production'
+const environment = require('./environment')()
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -36,7 +36,7 @@ module.exports = (request, response) => {
     if (pathname === '/password') return servePassword(request, response)
     if (pathname === '/reset') return serveReset(request, response)
     if (pathname === '/confirm') return serveConfirm(request, response)
-    if (pathname === '/internal-error' && !inProduction) {
+    if (pathname === '/internal-error' && !environment.production) {
       const testError = new Error('test error')
       return serve500(request, response, testError)
     }
