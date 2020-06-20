@@ -22,6 +22,7 @@
     "husky": "^4.2.5",
     "licensee": "^8.1.0",
     "nyc": "^15.1.0",
+    "parse5": "^6.0.0",
     "rimraf": "^3.0.2",
     "simple-concat": "^1.0.0",
     "sodium-native": "^3.1.1",
