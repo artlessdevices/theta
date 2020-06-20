@@ -2,7 +2,7 @@ const constants = require('./constants')
 const mail = require('./mail')
 const markdown = require('./markdown')
 
-exports.confirmAccount = ({ to, handle, url }, callback) => {
+exports.confirmEMail = ({ to, handle, url }, callback) => {
   const text = `
   `.trim()
   const html = markdown(text)
@@ -49,7 +49,7 @@ exports.handleReminder = ({ to, handle }, callback) => {
   }, callback)
 }
 
-exports.confirmEMailChange = ({ to, url }, callback) => {
+exports.changeEMail = ({ to, url }, callback) => {
   send({
     to,
     subject: `Confirm ${constants.website} E-Mail Change`,

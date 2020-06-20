@@ -4,6 +4,7 @@ const cookie = require('cookie')
 const csrf = require('./csrf')
 const doNotCache = require('do-not-cache')
 const escapeHTML = require('escape-html')
+const expired = require('./expired')
 const fs = require('fs')
 const html = require('./html')
 const mail = require('./mail')
@@ -223,14 +224,14 @@ function serveSignUp (request, response) {
       done => {
         const token = uuid.v4()
         storage.token.write(token, {
-          action: 'confirm',
+          action: 'confirm e-mail',
           created: new Date().toISOString(),
           handle,
           email
         }, error => {
           if (error) return done(error)
           request.log.info('recorded token')
-          notify.confirmAccount({
+          notify.confirmEMail({
             to: email,
             handle,
             url: `${process.env.BASE_HREF}/confirm?token=${token}`
@@ -692,14 +693,14 @@ function serveEMail (request, response) {
       }
       const token = uuid.v4()
       storage.token.write(token, {
-        action: 'email',
+        action: 'change e-mail',
         created: new Date().toISOString(),
         handle,
         email
       }, error => {
         if (error) return done(error)
         request.log.info({ token }, 'e-mail change token')
-        notify.confirmEMailChange({
+        notify.changeEMail({
           to: email,
           url: `${process.env.BASE_HREF}/confirm?token=${token}`
         }, done)
@@ -774,7 +775,10 @@ function getWithToken (request, response) {
   storage.token.read(token, (error, tokenData) => {
     if (error) return serve500(request, response, error)
     if (!tokenData) return invalidToken(request, response)
-    if (tokenData.action !== 'reset') {
+    if (
+      tokenData.action !== 'reset password' ||
+      expired.token(tokenData)
+    ) {
       response.statusCode = 400
       return response.end()
     }
@@ -959,7 +963,11 @@ function postPassword (request, response) {
     if (token) {
       return storage.token.read(token, (error, tokenData) => {
         if (error) return done(error)
-        if (!tokenData || tokenData.action !== 'reset') {
+        if (
+          !tokenData ||
+          tokenData.action !== 'reset password' ||
+          expired.token(tokenData)
+        ) {
           const failed = new Error('invalid token')
           failed.statusCode = 401
           return done(failed)
@@ -1061,7 +1069,7 @@ function serveReset (request, response) {
       }
       const token = uuid.v4()
       storage.token.write(token, {
-        action: 'reset',
+        action: 'reset password',
         created: new Date().toISOString(),
         handle
       }, error => {
@@ -1109,22 +1117,24 @@ function serveConfirm (request, response) {
 
   storage.token.read(token, (error, tokenData) => {
     if (error) return serve500(request, response, error)
-    if (!tokenData) return invalidToken(request, response)
+    if (!tokenData || expired.token(tokenData)) {
+      return invalidToken(request, response)
+    }
     storage.token.use(token, error => {
       if (error) return serve500(request, response, error)
       const action = tokenData.action
-      if (action !== 'confirm' && action !== 'email') {
+      if (action !== 'confirm e-mail' && action !== 'change e-mail') {
         response.statusCode = 400
         return response.end()
       }
       const handle = tokenData.handle
-      if (action === 'confirm') {
+      if (action === 'confirm e-mail') {
         storage.account.confirm(handle, error => {
           if (error) return serve500(request, response, error)
           serve303(request, response, '/login')
         })
       }
-      if (action === 'email') {
+      if (action === 'change e-mail') {
         const email = tokenData.email
         let oldEMail
         runSeries([

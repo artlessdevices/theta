@@ -13,7 +13,7 @@ exports.changeEMailToken = (dateString) => expired({
   lifetime: hours(1)
 })
 
-exports.confirmAccountToken = (dateString) => expired({
+exports.confirmEMailToken = (dateString) => expired({
   dateString,
   lifetime: days(1)
 })
@@ -24,9 +24,9 @@ exports.resetPasswordToken = (dateString) => expired({
 })
 
 const actionToExpiration = {
-  confirm: exports.confirmAccountToken,
-  email: exports.changeEMailToken,
-  reset: exports.resetPasswordToken
+  'confirm e-mail': exports.confirmEMailToken,
+  'change e-mail': exports.changeEMailToken,
+  'reset password': exports.resetPasswordToken
 }
 
 exports.token = (token) => {
