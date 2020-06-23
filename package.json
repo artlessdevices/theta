@@ -13,7 +13,6 @@
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
     "secure-password": "^4.0.0",
-    "simple-concat-limit": "^2.0.3",
     "url-parse": "^1.4.7",
     "uuid": "^8.1.0"
   },
