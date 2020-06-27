@@ -28,30 +28,37 @@ const uuid = require('uuid')
 const environment = require('./environment')()
 const stripe = require('stripe')(environment.STRIPE_SECRET_KEY)
 
+const authenticatedRoutes = {
+  '/': serveIndex,
+  '/signup': serveSignUp,
+  '/login': serveLogIn,
+  '/logout': serveLogOut,
+  '/account': serveAccount,
+  '/handle': serveHandle,
+  '/email': serveEMail,
+  '/password': servePassword,
+  '/reset': serveReset,
+  '/confirm': serveConfirm,
+  '/connected': serveConnected,
+  '/disconnect': serveDisconnect
+}
+
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
-  authenticate(request, response, () => {
-    const pathname = parsed.pathname
-    if (pathname === '/') return serveIndex(request, response)
-    if (pathname === '/styles.css') return serveStyles(request, response)
-    if (pathname === '/signup') return serveSignUp(request, response)
-    if (pathname === '/login') return serveLogIn(request, response)
-    if (pathname === '/logout') return serveLogOut(request, response)
-    if (pathname === '/account') return serveAccount(request, response)
-    if (pathname === '/handle') return serveHandle(request, response)
-    if (pathname === '/email') return serveEMail(request, response)
-    if (pathname === '/password') return servePassword(request, response)
-    if (pathname === '/reset') return serveReset(request, response)
-    if (pathname === '/confirm') return serveConfirm(request, response)
-    if (pathname === '/connected') return serveConnected(request, response)
-    if (pathname === '/disconnect') return serveDisconnect(request, response)
-    if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
-    if (pathname === '/internal-error' && !environment.production) {
-      const testError = new Error('test error')
-      return serve500(request, response, testError)
-    }
-    serve404(request, response)
-  })
+  const pathname = parsed.pathname
+  const route = authenticatedRoutes[pathname]
+  if (route) {
+    return authenticate(request, response, () => {
+      route(request, response)
+    })
+  }
+  if (pathname === '/styles.css') return serveStyles(request, response)
+  if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
+  if (pathname === '/internal-error' && !environment.production) {
+    const testError = new Error('test error')
+    return serve500(request, response, testError)
+  }
+  serve404(request, response)
 }
 
 // Partials
