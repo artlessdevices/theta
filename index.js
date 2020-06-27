@@ -1,25 +1,32 @@
 // HTTP Server Request Handler
 
 const Busboy = require('busboy')
+const FormData = require('form-data')
 const constants = require('./constants')
 const cookie = require('cookie')
+const crypto = require('crypto')
 const csrf = require('./csrf')
 const doNotCache = require('do-not-cache')
 const escapeHTML = require('escape-html')
 const expired = require('./expired')
 const fs = require('fs')
 const html = require('./html')
+const https = require('https')
 const mail = require('./mail')
 const notify = require('./notify')
+const parseJSON = require('json-parse-errback')
 const parseURL = require('url-parse')
 const passwordStorage = require('./password-storage')
 const path = require('path')
+const querystring = require('querystring')
 const runParallel = require('run-parallel')
 const runSeries = require('run-series')
+const simpleConcatLimit = require('simple-concat-limit')
 const storage = require('./storage')
 const uuid = require('uuid')
 
 const environment = require('./environment')()
+const stripe = require('stripe')(environment.STRIPE_SECRET_KEY)
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -36,6 +43,9 @@ module.exports = (request, response) => {
     if (pathname === '/password') return servePassword(request, response)
     if (pathname === '/reset') return serveReset(request, response)
     if (pathname === '/confirm') return serveConfirm(request, response)
+    if (pathname === '/connected') return serveConnected(request, response)
+    if (pathname === '/disconnect') return serveDisconnect(request, response)
+    if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
     if (pathname === '/internal-error' && !environment.production) {
       const testError = new Error('test error')
       return serve500(request, response, testError)
@@ -210,6 +220,10 @@ function serveSignUp (request, response) {
                 created: new Date().toISOString(),
                 confirmed: false,
                 failures: 0,
+                stripe: {
+                  connected: false,
+                  connectNonce: randomNonce()
+                },
                 locked: false
               }, done)
             },
@@ -324,6 +338,10 @@ function serveSignUp (request, response) {
 </html>
     `)
   }
+}
+
+function randomNonce () {
+  return crypto.randomBytes(32).toString('hex')
 }
 
 function serveLogIn (request, response) {
@@ -521,6 +539,14 @@ function serveAccount (request, response) {
           <th>Signed Up</th>
           <td class=signedup>${escape(new Date(account.created).toISOString())}</td>
         </tr>
+        <tr>
+          <th>Stripe</th>
+          <td>${
+            account.stripe.connected
+              ? disconnectLink()
+              : connectLink()
+          }</td>
+        </tr>
       </table>
       <a class=button href=/password>Change Password</a>
       <a class=button href=/email>Change E-Mail</a>
@@ -528,6 +554,31 @@ function serveAccount (request, response) {
   </body>
 </html>
   `)
+
+  function disconnectLink () {
+    const action = '/disconnect'
+    const csrfInputs = csrf.inputs({
+      action, sessionID: request.session.id
+    })
+    return html`
+<form id=disconnectForm action=${action} method=post>
+  ${csrfInputs}
+  <button id=disconnect type=submit>Disconnect Stripe Account</button>
+</form>
+    `
+  }
+
+  function connectLink () {
+    const url = 'https://connect.stripe.com/oauth/authorize?' +
+      querystring.stringify({
+        response_type: 'code',
+        client_id: environment.STRIPE_CLIENT_ID,
+        scope: 'read_write',
+        state: account.stripe.connectNonce,
+        redirect_uri: `${process.env.BASE_HREF}/connected`
+      })
+    return `<a id=connect class=button href="${url}">Connect Stripe Account</a>`
+  }
 }
 
 function serveHandle (request, response) {
@@ -560,7 +611,7 @@ function serveHandle (request, response) {
     ${header}
     ${nav(request)}
     <main role=main>
-      <h2>Forgot Handle</h2>
+      <h2>${title}</h2>
       <form id=handleForm method=post>
         ${data.error}
         ${data.csrf}
@@ -589,13 +640,13 @@ function serveHandle (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Forgot Handle / ${constants.website}</title>
+    <title>${title} / ${constants.website}</title>
   </head>
   <body>
     ${header}
     ${nav(request)}
     <main role=main>
-      <h2>Forgot Handle</h2>
+      <h2>${title}</h2>
       <p class=message>If the e-mail you entered corresponds to an account, an e-mail was just sent to it.</p>
     </main>
   </body>
@@ -1174,6 +1225,229 @@ function serveConfirm (request, response) {
         })
       }
     })
+  })
+}
+
+function serveConnected (request, response) {
+  if (request.method !== 'GET') {
+    response.statusCode = 405
+    return response.end()
+  }
+
+  const query = request.parsed.query
+  if (query.error) {
+    const description = query.error_description
+    request.log.info({
+      error: query.error,
+      description
+    }, 'Stripe Connect error')
+    return fail(description)
+  }
+
+  const account = request.account
+  const { scope, code, state } = query
+  request.log.info({ scope, code, state }, 'Stripe redirect')
+  if (scope === 'read_write' && code && state) {
+    if (account.stripe.connected) {
+      request.log.warn('Stripe already connected')
+      return fail('already connected')
+    }
+    if (state !== account.stripe.connectNonce) {
+      request.log.warn({ state }, 'Connect nonce mismatch')
+      return fail('Stripe Connect security failure')
+    }
+    let token
+    return runSeries([
+      done => {
+        var form = new FormData()
+        form.append('grant_type', 'authorization_code')
+        form.append('code', code)
+        form.append('client_secret', environment.STRIPE_SECRET_KEY)
+        form.pipe(
+          https.request({
+            method: 'POST',
+            host: 'connect.stripe.com',
+            path: '/oauth/token',
+            headers: form.getHeaders()
+          })
+            .once('error', done)
+            .once('response', function (response) {
+              simpleConcatLimit(response, 1024, (error, buffer) => {
+                if (error) return done(error)
+                parseJSON(buffer, (error, parsed) => {
+                  if (error) return done(error)
+                  token = parsed
+                  done()
+                })
+              })
+            })
+        )
+      },
+      done => storage.account.update(account.handle, {
+        stripe: { connected: true, token }
+      }, done),
+      done => storage.stripeID.write(response.stripe_user_id, {
+        handle: account.handle,
+        date: new Date().toISOString()
+      }, done),
+      done => notify.connectedStripe({ to: account.email }, error => {
+        // Log the error, but don't fail.
+        if (error) request.log.error(error, 'E-Mail Error')
+        done()
+      })
+    ], (error) => {
+      if (error) {
+        request.log.info(error, 'Connect error')
+        return fail(error)
+      }
+      response.statusCode = 303
+      response.setHeader('Location', '/account')
+      response.end()
+    })
+  }
+
+  response.statusCode = 400
+  response.end()
+
+  function fail (message) {
+    response.statusCode = 500
+    response.setHeader('Content-Type', 'text/html')
+    return response.end(`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>Stripe Error / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main role=main>
+      <h2>Problem Connecting Stripe</h2>
+      <p>Stripe reported an error connecting your account:</p>
+      <blockqute><p>${escapeHTML(message)}</p></blockqute>
+    </main>
+  </body>
+</html>
+    `)
+  }
+}
+
+function serveDisconnect (request, response) {
+  if (request.method !== 'POST') return serve405(request, response)
+
+  const account = request.account
+  if (!account) return serve302(request, response, '/login')
+
+  const body = {}
+  const fields = ['csrftoken', 'csrfnonce']
+  request.pipe(
+    new Busboy({
+      headers: request.headers,
+      limits: {
+        fieldNameSize: Math.max(fields.map(n => n.length)),
+        fields: 2,
+        parts: 1
+      }
+    })
+      .on('field', function (name, value, truncated, encoding, mime) {
+        if (fields.includes(name)) body[name] = value
+      })
+      .once('finish', onceParsed)
+  )
+
+  function onceParsed () {
+    runSeries([
+      done => csrf.verify({
+        action: '/disconnect',
+        sessionID: request.session.id,
+        token: body.csrftoken,
+        nonce: body.csrfnonce
+      }, done),
+      done => stripe.oauth.deauthorize({
+        client_id: environment.STRIPE_CLIENT_ID,
+        stripe_user_id: account.stripe.token.stripe_user_id
+      }, done)
+    ], error => {
+      if (error) {
+        request.log.error(error)
+        response.statusCode = 500
+        return response.end()
+      }
+      response.setHeader('Content-Type', 'text/html')
+      response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>Disconnected Stripe Account / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main>
+      <h2>Disconnected Stripe Account</h2>
+      <p class=message>Stripe has been told to disconnect your account. The change should take effect shortly.</p>
+    </main>
+  </body>
+</html>
+      `)
+    })
+  }
+}
+
+function serveStripeWebhook (request, response) {
+  const signature = request.headers['stripe-signature']
+  simpleConcatLimit(request, 2048, (error, buffer) => {
+    if (error) {
+      response.statusCode = 500
+      return response.end()
+    }
+
+    let event
+    try {
+      event = stripe.webhooks.constructEvent(
+        buffer, signature, process.env.STRIPE_WEBHOOK_SECRET
+      )
+    } catch (error) {
+      request.log.error(error)
+      response.statusCode = 400
+      return response.end()
+    }
+
+    request.log.info({ event }, 'Stripe webhook event')
+
+    const type = event.type
+    if (type === 'account.application.deauthorized') {
+      const stripeID = event.account
+      let handle
+      return runSeries([
+        done => storage.stripeID.read(stripeID, (error, record) => {
+          if (error) return done(error)
+          if (!record) return done(new Error('unknown Stripe account'))
+          handle = record.handle
+          done()
+        }),
+        done => storage.account.update(handle, {
+          stripe: {
+            connected: false,
+            connectNonce: randomNonce()
+          }
+        }, done),
+        done => storage.stripeID.delete(stripeID, done)
+      ], error => {
+        if (error) {
+          response.statusCode = 500
+          return response.end()
+        }
+        request.log.info({ handle }, 'Stripe disconnected')
+        response.statusCode = 200
+        response.end()
+      })
+    }
+
+    response.statusCode = 400
+    response.end()
   })
 }
 

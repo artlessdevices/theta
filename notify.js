@@ -63,6 +63,16 @@ To confirm the new e-mail address for your ${constants.website} account, follow 
   }, callback)
 }
 
+exports.connectedStripe = ({ to }, callback) => {
+  send({
+    to,
+    subject: `Stripe Account Connected to ${constants.website}`,
+    markup: `
+You've successfully connected your Stripe account to your ${constants.website} account.
+    `.trim()
+  }, callback)
+}
+
 function send ({ to, subject, markup }, callback) {
   mail({
     to,

@@ -12,6 +12,14 @@ const variables = [
   {
     name: 'DIRECTORY',
     required: true
+  },
+  {
+    name: 'STRIPE_CLIENT_ID',
+    required: true
+  },
+  {
+    name: 'STRIPE_SECRET_KEY',
+    required: true
   }
 ]
 

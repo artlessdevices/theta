@@ -19,7 +19,7 @@ tape('server', test => {
             BASE_HREF: 'http://localhost:' + serverPort + '/',
             CSRF_KEY: csrf.randomKey(),
             DIRECTORY: directory,
-            STRIPE_PLAN: process.env.STRIPE_PLAN,
+            STRIPE_CLIENT_ID: process.env.STRIPE_CLIENT_ID,
             STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
             STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY
           }
