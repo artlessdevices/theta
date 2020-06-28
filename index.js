@@ -55,8 +55,7 @@ module.exports = (request, response) => {
   if (pathname === '/styles.css') return serveStyles(request, response)
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
   if (pathname === '/internal-error' && !environment.production) {
-    const testError = new Error('test error')
-    return serve500(request, response, testError)
+    return serve500(request, response, new Error('test error'))
   }
   serve404(request, response)
 }
