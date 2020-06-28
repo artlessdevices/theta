@@ -28,28 +28,28 @@ const uuid = require('uuid')
 const environment = require('./environment')()
 const stripe = require('stripe')(environment.STRIPE_SECRET_KEY)
 
-const authenticatedRoutes = {
-  '/': serveIndex,
-  '/signup': serveSignUp,
-  '/login': serveLogIn,
-  '/logout': serveLogOut,
-  '/account': serveAccount,
-  '/handle': serveHandle,
-  '/email': serveEMail,
-  '/password': servePassword,
-  '/reset': serveReset,
-  '/confirm': serveConfirm,
-  '/connected': serveConnected,
-  '/disconnect': serveDisconnect
-}
+const routes = require('http-hash')()
+routes.set('/', serveIndex)
+routes.set('/signup', serveSignUp)
+routes.set('/login', serveLogIn)
+routes.set('/logout', serveLogOut)
+routes.set('/account', serveAccount)
+routes.set('/handle', serveHandle)
+routes.set('/email', serveEMail)
+routes.set('/password', servePassword)
+routes.set('/reset', serveReset)
+routes.set('/confirm', serveConfirm)
+routes.set('/connected', serveConnected)
+routes.set('/disconnect', serveDisconnect)
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
   const pathname = parsed.pathname
-  const route = authenticatedRoutes[pathname]
-  if (route) {
+  const { handler, params } = routes.get(pathname)
+  if (handler) {
+    request.parameters = params
     return authenticate(request, response, () => {
-      route(request, response)
+      handler(request, response)
     })
   }
   if (pathname === '/styles.css') return serveStyles(request, response)
