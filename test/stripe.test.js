@@ -2,6 +2,7 @@ const login = require('./login')
 const server = require('./server')
 const signup = require('./signup')
 const tape = require('tape')
+const timeout = require('./timeout')
 const webdriver = require('./webdriver')
 
 tape('Stripe Connect', test => {
@@ -23,8 +24,8 @@ tape('Stripe Connect', test => {
       .then(() => login({ browser, port, handle, password }))
       // Navigate to account page.
       .then(() => browser.$('#account'))
-      // Connect.
       .then(account => account.click())
+      // Connect.
       .then(() => browser.$('#connect'))
       .then(connect => connect.click())
       .then(() => browser.$('=Skip this account form'))
@@ -36,10 +37,17 @@ tape('Stripe Connect', test => {
       // Disconnect.
       .then(() => browser.$('#disconnect'))
       .then(disconnect => disconnect.click())
-      // Confirm disconnected.
       .then(() => browser.$('h2'))
       .then(h2 => h2.getText())
       .then(text => test.equal(text, 'Disconnected Stripe Account', 'disconnected'))
+      .then(() => timeout(5000))
+      // Navigate back to account page.
+      .then(() => browser.$('#account'))
+      .then(account => account.click())
+      // Confirm disconnected.
+      .then(() => browser.$('#connect'))
+      .then(connect => connect.getText())
+      .then(text => test.equal(text, 'Connect Stripe Account', 'confirmed disconnected'))
       // Finish.
       .then(() => finish())
       .catch(error => {

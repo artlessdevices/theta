@@ -1284,6 +1284,7 @@ function serveConnected (request, response) {
                 parseJSON(buffer, (error, parsed) => {
                   if (error) return done(error)
                   token = parsed
+                  request.log.info(token, 'Stripe token')
                   done()
                 })
               })
@@ -1293,7 +1294,7 @@ function serveConnected (request, response) {
       done => storage.account.update(account.handle, {
         stripe: { connected: true, token }
       }, done),
-      done => storage.stripeID.write(response.stripe_user_id, {
+      done => storage.stripeID.write(token.stripe_user_id, {
         handle: account.handle,
         date: new Date().toISOString()
       }, done),
@@ -1404,20 +1405,18 @@ function serveDisconnect (request, response) {
 }
 
 function serveStripeWebhook (request, response) {
-  const signature = request.headers['stripe-signature']
   simpleConcatLimit(request, 2048, (error, buffer) => {
-    if (error) {
-      response.statusCode = 500
-      return response.end()
-    }
+    if (error) return fail(error)
 
     let event
     try {
       event = stripe.webhooks.constructEvent(
-        buffer, signature, process.env.STRIPE_WEBHOOK_SECRET
+        buffer.toString(),
+        request.headers['stripe-signature'],
+        process.env.STRIPE_WEBHOOK_SECRET
       )
     } catch (error) {
-      request.log.error(error)
+      request.log.warn(error)
       response.statusCode = 400
       return response.end()
     }
@@ -1427,6 +1426,7 @@ function serveStripeWebhook (request, response) {
     const type = event.type
     if (type === 'account.application.deauthorized') {
       const stripeID = event.account
+      request.log.info({ stripeID }, 'Stripe ID')
       let handle
       return runSeries([
         done => storage.stripeID.read(stripeID, (error, record) => {
@@ -1443,10 +1443,7 @@ function serveStripeWebhook (request, response) {
         }, done),
         done => storage.stripeID.delete(stripeID, done)
       ], error => {
-        if (error) {
-          response.statusCode = 500
-          return response.end()
-        }
+        if (error) return fail(error)
         request.log.info({ handle }, 'Stripe disconnected')
         response.statusCode = 200
         response.end()
@@ -1456,6 +1453,12 @@ function serveStripeWebhook (request, response) {
     response.statusCode = 400
     response.end()
   })
+
+  function fail (error) {
+    request.log.error(error)
+    response.statusCode = 500
+    return response.end()
+  }
 }
 
 const cookieName = constants.website.toLowerCase()
