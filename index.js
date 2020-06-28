@@ -74,6 +74,46 @@ const projects = (() => {
 const userPagePathRE = new RegExp(`^/~(${handles.pattern})$`)
 const projectPagePathRE = new RegExp(`^/~(${handles.pattern})/(${projects.pattern})$`)
 
+const userBadges = [
+  {
+    key: 'award',
+    display: 'Award',
+    title: `This user has done special service to ${constants.website}.`,
+    icon: 'award'
+  },
+  {
+    key: 'verified',
+    display: 'Verified',
+    title: `${constants.website} has verified this user.`,
+    icon: 'check-circle'
+  },
+  {
+    key: 'vanguard',
+    display: 'Vanguard',
+    title: `This user was one of the first to sign up for ${constants.website}.`,
+    icon: 'angle-double-up'
+  }
+]
+
+const projectBadges = [
+  {
+    key: 'featured',
+    display: 'Features',
+    title: `This project has been featured on ${constants.website}.`,
+    icon: 'bullhorn'
+  },
+  {
+    key: 'seedling',
+    display: 'Seedling',
+    title: `This project pays the miminum to ${constants.website} for each sale.`,
+    icon: 'seedling'
+  }
+]
+
+const icons = []
+  .concat(userBadges.map(badge => badge.icon))
+  .concat(projectBadges.map(badge => badge.icon))
+
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
   const pathname = parsed.pathname
@@ -85,9 +125,18 @@ module.exports = (request, response) => {
     })
   }
   if (pathname === '/styles.css') return serveStyles(request, response)
+  for (let index = 0; index < icons.length; index++) {
+    const icon = icons[index]
+    if (pathname === `/${icon}.svg`) {
+      return serveIcon(request, response, icon)
+    }
+  }
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
   if (pathname === '/internal-error' && !environment.production) {
     return serve500(request, response, new Error('test error'))
+  }
+  if (pathname === '/badges' && !environment.production) {
+    return serveBadges(request, response)
   }
   let match = userPagePathRE.exec(pathname)
   if (match) {
@@ -172,6 +221,12 @@ function serveIndex (request, response) {
 function serveStyles (request, response) {
   const file = path.join(__dirname, 'styles.css')
   response.setHeader('Content-Type', 'text/css')
+  fs.createReadStream(file).pipe(response)
+}
+
+function serveIcon (request, response, icon) {
+  const file = path.join(__dirname, 'icons', `${icon}.svg`)
+  response.setHeader('Content-Type', 'image/svg+xml')
   fs.createReadStream(file).pipe(response)
 }
 
@@ -263,6 +318,7 @@ function serveSignUp (request, response) {
                 created: new Date().toISOString(),
                 confirmed: false,
                 failures: 0,
+                badges: {},
                 stripe: {
                   connected: false,
                   connectNonce: randomNonce()
@@ -425,6 +481,7 @@ function serveCreate (request, response) {
       done => storage.project.write(slug, {
         project,
         handle,
+        badges: {},
         created: new Date().toISOString()
       }, done)
     ], done)
@@ -1526,6 +1583,13 @@ function serveDisconnect (request, response) {
   }
 }
 
+const fontAwesomeCredit = `
+<p>
+  Icons by <a href=https://fontawesome.com>Font Awesome</a>
+  under <a href=https://creativecommons.org/licenses/by/4.0/>CC-BY-4.0</a>.
+</p>
+`
+
 function serveUserPage (request, response) {
   const { handle } = request.parameters
 
@@ -1563,6 +1627,11 @@ function serveUserPage (request, response) {
     ${nav(request)}
     <main>
       <h2>${handle}</h2>
+      <ul class=badges>${
+        userBadges
+          .filter(badge => accountData.badges[badge.key])
+          .map(badge => `<li>${badgeImage(badge)}</li>`)
+      }</ul>
       <table>
         <tr>
           <th>Joined</th>
@@ -1570,10 +1639,56 @@ function serveUserPage (request, response) {
         </tr>
       </table>
     </main>
+    <footer role=contentinfo>
+      ${fontAwesomeCredit}
+    </footer>
   </body>
 </html>
     `)
   }
+}
+
+function badgeImage ({ key, display, title, icon }) {
+  return html`
+<img
+    class=badge
+    alt="${key}"
+    title="${escapeHTML(title)}"
+    src="/${icon}.svg">
+  `
+}
+
+function serveBadges (request, response) {
+  response.setHeader('Content-Type', 'text/html')
+  response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>Badges</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main>
+      <h2>User Badges</h2>
+      <ul class=badges>${
+        userBadges.map(badge => `<li>${badgeImage(badge)}</li>`)
+      }</ul>
+      <h2>Project Badges</h2>
+      <ul class=badges>${
+        projectBadges.map(badge => `<li>${badgeImage(badge)}</li>`)
+      }</ul>
+    </main>
+    <footer role=contentinfo>
+      <p>
+        Icons by <a href=https://fontawesome.com>Font Awesome</a>
+        under <a href=https://creativecommons.org/licenses/by/4.0/>CC-BY-4.0</a>.
+      </p>
+    </footer>
+  </body>
+</html>
+  `)
 }
 
 function serveProjectPage (request, response) {
@@ -1621,6 +1736,11 @@ function serveProjectPage (request, response) {
     ${nav(request)}
     <main>
       <h2>${project}</h2>
+      <ul class=badges>${
+        projectBadges
+          .filter(badge => projectData.badges[badge.key])
+          .map(badge => `<li>${badgeImage(badge)}</li>`)
+      }</ul>
       <table>
         <tr>
           <th>User</th>

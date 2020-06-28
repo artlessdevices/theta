@@ -34,3 +34,29 @@ button, .button {
   font-size: 100%;
   padding: 1ex;
 }
+
+.badges {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+.badges li {
+  display: inline-block;
+  margin: 0 0.5rem;
+}
+
+.badges li:first-of-type {
+  margin-left: 0;
+}
+
+.badges li:last-of-type {
+  margin-right: 0;
+}
+
+.badge {
+  height: 1.5rem;
+  user-select: none;
+  width: 1.5rem;
+}
