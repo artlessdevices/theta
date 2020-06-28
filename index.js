@@ -33,6 +33,7 @@ routes.set('/', serveIndex)
 routes.set('/signup', serveSignUp)
 routes.set('/login', serveLogIn)
 routes.set('/logout', serveLogOut)
+routes.set('/create', serveCreate)
 routes.set('/account', serveAccount)
 routes.set('/handle', serveHandle)
 routes.set('/email', serveEMail)
@@ -41,6 +42,9 @@ routes.set('/reset', serveReset)
 routes.set('/confirm', serveConfirm)
 routes.set('/connected', serveConnected)
 routes.set('/disconnect', serveDisconnect)
+
+const userPagePathRE = /^\/~([a-z0-9]{3,16})$/
+const projectPagePathRE = /^\/~([a-z0-9]{3,16})\/([a-z0-9]{3,16})$/
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -56,6 +60,25 @@ module.exports = (request, response) => {
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
   if (pathname === '/internal-error' && !environment.production) {
     return serve500(request, response, new Error('test error'))
+  }
+  let match = userPagePathRE.exec(pathname)
+  if (match) {
+    request.parameters = {
+      handle: match[1]
+    }
+    return authenticate(request, response, () => {
+      serveUserPage(request, response)
+    })
+  }
+  match = projectPagePathRE.exec(pathname)
+  if (match) {
+    request.parameters = {
+      handle: match[1],
+      project: match[2]
+    }
+    return authenticate(request, response, () => {
+      serveProjectPage(request, response)
+    })
   }
   serve404(request, response)
 }
@@ -136,6 +159,20 @@ const handles = (() => {
     pattern,
     valid: (string) => re.test(string),
     html: 'Handles must be ' +
+      'made of the characters ‘a’ through ‘z’ ' +
+      'and the digits ‘0’ through ‘9’. ' +
+      'They must be at least three characters long, ' +
+      'but no more than sixteen.'
+  }
+})()
+
+const projects = (() => {
+  const pattern = '^[a-z0-9]{3,16}$'
+  const re = new RegExp(pattern)
+  return {
+    pattern,
+    valid: (string) => re.test(string),
+    html: 'Project names must be ' +
       'made of the characters ‘a’ through ‘z’ ' +
       'and the digits ‘0’ through ‘9’. ' +
       'They must be at least three characters long, ' +
@@ -350,6 +387,91 @@ function randomNonce () {
   return crypto.randomBytes(32).toString('hex')
 }
 
+function serveCreate (request, response) {
+  const title = 'Create Project'
+
+  const fields = {
+    project: {
+      filter: e => e.toLowerCase().trim(),
+      validate: projects.valid
+    }
+  }
+
+  formRoute({
+    action: '/create',
+    requireAuthentication: true,
+    form,
+    fields,
+    processBody,
+    onSuccess
+  })(request, response)
+
+  function processBody (request, body, done) {
+    const handle = request.account.handle
+    const { project } = body
+    const slug = `${handle}/${project}`
+    runSeries([
+      done => {
+        storage.project.exists(slug, (error, exists) => {
+          if (error) return done(error)
+          if (exists) {
+            const error = new Error('project nmame taken')
+            error.statusCode = 400
+            return done(error)
+          }
+          done()
+        })
+      },
+      done => storage.project.write(slug, {
+        project,
+        handle,
+        created: new Date().toISOString()
+      }, done)
+    ], done)
+  }
+
+  function onSuccess (request, response, body) {
+    const slug = `${request.account.handle}/${body.project}`
+    serve303(request, response, `/~${slug}`)
+  }
+
+  function form (request, data) {
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${title} / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main role=main>
+      <h2>${title}</h2>
+      <form id=createForm method=post>
+        ${data.error}
+        ${data.csrf}
+        ${data.project.error}
+        <p>
+          <label for=project>Project Name</label>
+          <input
+              name=project
+              type=text
+              pattern="${projects.pattern}"
+              value="${escapeHTML(data.project.value)}"
+              autofocus
+              required>
+        </p>
+        <button type=submit>${title}</button>
+      </form>
+    </main>
+  </body>
+</html>
+    `)
+  }
+}
+
 function serveLogIn (request, response) {
   const title = 'Log In'
 
@@ -554,6 +676,7 @@ function serveAccount (request, response) {
           }</td>
         </tr>
       </table>
+      <a class=button href=/create>Create Project</a>
       <a class=button href=/password>Change Password</a>
       <a class=button href=/email>Change E-Mail</a>
     </main>
@@ -1400,6 +1523,122 @@ function serveDisconnect (request, response) {
 </html>
       `)
     })
+  }
+}
+
+function serveUserPage (request, response) {
+  const { handle } = request.parameters
+
+  let accountData
+  runParallel([
+    done => storage.account.read(handle, (error, data) => {
+      if (error) return done(error)
+      if (!data) {
+        var notFound = new Error('not found')
+        notFound.statusCode = 404
+        return done(error)
+      }
+      accountData = data
+      done()
+    })
+  ], error => {
+    if (error) {
+      if (error.statusCode === 404) return serve404(request, response)
+      return serve500(request, response, error)
+    }
+    render()
+  })
+
+  function render () {
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${handle} / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main>
+      <h2>${handle}</h2>
+      <table>
+        <tr>
+          <th>Joined</th>
+          <td>${accountData.created}</td>
+        </tr>
+      </table>
+    </main>
+  </body>
+</html>
+    `)
+  }
+}
+
+function serveProjectPage (request, response) {
+  const { handle, project } = request.parameters
+  const slug = `${handle}/${project}`
+
+  let accountData, projectData
+  runParallel({
+    account: read(storage.account.read, handle, 'account'),
+    project: read(storage.project.read, slug, 'project')
+  }, (error, results) => {
+    if (error) {
+      if (error.statusCode === 404) return serve404(request, response)
+      return serve500(request, response, error)
+    }
+    accountData = results.account
+    projectData = results.project
+    render()
+  })
+
+  function read (read, name, typeString) {
+    return done => read(name, (error, data) => {
+      if (error) return done(error)
+      if (!data) {
+        var notFound = new Error(`${typeString} not found`)
+        notFound.statusCode = 404
+        return done(error)
+      }
+      done(null, data)
+    })
+  }
+
+  function render () {
+    const connected = accountData.stripe.connected
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${slug} / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main>
+      <h2>${project}</h2>
+      <table>
+        <tr>
+          <th>User</th>
+          <td><a href=/~${handle}>${handle}</a></td>
+        </tr>
+        <tr>
+          <th>Created</th>
+          <td>${projectData.created}</td>
+        </tr>
+        <tr>
+          <th>Available</th>
+          <td>${connected ? 'Yes' : 'No'}</td>
+        </tr>
+      </table>
+    </main>
+  </body>
+</html>
+    `)
   }
 }
 
