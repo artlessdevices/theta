@@ -10,6 +10,7 @@ const doNotCache = require('do-not-cache')
 const escapeHTML = require('escape-html')
 const expired = require('./expired')
 const fs = require('fs')
+const gravatar = require('gravatar')
 const html = require('./html')
 const https = require('https')
 const mail = require('./mail')
@@ -1626,6 +1627,9 @@ function serveUserPage (request, response) {
     ${header}
     ${nav(request)}
     <main>
+      <img
+          class=avatar
+          src="${gravatar.url(accountData.email, { size: 200, protocol: 'https' })}">
       <h2>${handle}</h2>
       <ul class=badges>${
         userBadges
