@@ -43,8 +43,36 @@ routes.set('/confirm', serveConfirm)
 routes.set('/connected', serveConnected)
 routes.set('/disconnect', serveDisconnect)
 
-const userPagePathRE = /^\/~([a-z0-9]{3,16})$/
-const projectPagePathRE = /^\/~([a-z0-9]{3,16})\/([a-z0-9]{3,16})$/
+const handles = (() => {
+  const pattern = '[a-z0-9]{3,16}'
+  const re = new RegExp(`^${pattern}$`)
+  return {
+    pattern,
+    valid: (string) => re.test(string),
+    html: 'Handles must be ' +
+      'made of the characters ‘a’ through ‘z’ ' +
+      'and the digits ‘0’ through ‘9’. ' +
+      'They must be at least three characters long, ' +
+      'but no more than sixteen.'
+  }
+})()
+
+const projects = (() => {
+  const pattern = '[a-z0-9]{3,16}'
+  const re = new RegExp(`^${pattern}$`)
+  return {
+    pattern,
+    valid: (string) => re.test(string),
+    html: 'Project names must be ' +
+      'made of the characters ‘a’ through ‘z’ ' +
+      'and the digits ‘0’ through ‘9’. ' +
+      'They must be at least three characters long, ' +
+      'but no more than sixteen.'
+  }
+})()
+
+const userPagePathRE = new RegExp(`^/~(${handles.pattern})$`)
+const projectPagePathRE = new RegExp(`^/~(${handles.pattern})/(${projects.pattern})$`)
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -152,39 +180,11 @@ const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0
 
 const UUID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
 
-const handles = (() => {
-  const pattern = '^[a-z0-9]{3,16}$'
-  const re = new RegExp(pattern)
-  return {
-    pattern,
-    valid: (string) => re.test(string),
-    html: 'Handles must be ' +
-      'made of the characters ‘a’ through ‘z’ ' +
-      'and the digits ‘0’ through ‘9’. ' +
-      'They must be at least three characters long, ' +
-      'but no more than sixteen.'
-  }
-})()
-
-const projects = (() => {
-  const pattern = '^[a-z0-9]{3,16}$'
-  const re = new RegExp(pattern)
-  return {
-    pattern,
-    valid: (string) => re.test(string),
-    html: 'Project names must be ' +
-      'made of the characters ‘a’ through ‘z’ ' +
-      'and the digits ‘0’ through ‘9’. ' +
-      'They must be at least three characters long, ' +
-      'but no more than sixteen.'
-  }
-})()
-
 const passwords = (() => {
   const min = 8
   const max = 64
-  const pattern = exports.pattern = `^.{${min},${max}}$`
-  const re = new RegExp(pattern)
+  const pattern = exports.pattern = `.{${min},${max}}`
+  const re = new RegExp(`^${pattern}$`)
   return {
     pattern,
     valid: (string) => {
@@ -363,7 +363,7 @@ function serveSignUp (request, response) {
           <input
               name=handle
               type=text
-              pattern="${handles.pattern}"
+              pattern="^${handles.pattern}$"
               value="${escapeHTML(data.handle.value)}"
               autofocus
               required>
@@ -458,7 +458,7 @@ function serveCreate (request, response) {
           <input
               name=project
               type=text
-              pattern="${projects.pattern}"
+              pattern="^${projects.pattern}$"
               value="${escapeHTML(data.project.value)}"
               autofocus
               required>
@@ -1226,7 +1226,7 @@ function serveReset (request, response) {
               name=handle
               value="${escapeHTML(data.handle.value)}"
               type=text
-              pattern="${escapeHTML(handles.pattern)}"
+              pattern="^${handles.pattern}$"
               required
               autofocus
               autocomplete=off>
@@ -1753,7 +1753,7 @@ function passwordRepeatInput () {
   <input
       name=repeat
       type=password
-      pattern="${passwords.pattern}"
+      pattern="^${passwords.pattern}$"
       required
       autocomplete=off>
 </p>
