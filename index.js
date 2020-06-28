@@ -316,10 +316,13 @@ function serveSignUp (request, response) {
                 handle,
                 email,
                 passwordHash,
+                name: null,
+                location: null,
+                urls: [],
+                badges: {},
                 created: new Date().toISOString(),
                 confirmed: false,
                 failures: 0,
-                badges: {},
                 stripe: {
                   connected: false,
                   connectNonce: randomNonce()
@@ -1637,6 +1640,9 @@ function serveUserPage (request, response) {
           .map(badge => `<li>${badgeImage(badge)}</li>`)
       }</ul>
       <table>
+        ${accountData.name && row('Name', accountData.name)}
+        ${accountData.location && row('Location', accountData.location)}
+        ${accountData.urls.length > 0 && urlsRow()}
         <tr>
           <th>Joined</th>
           <td>${accountData.created}</td>
@@ -1649,6 +1655,25 @@ function serveUserPage (request, response) {
   </body>
 </html>
     `)
+
+    function row (label, string) {
+      return html`
+<tr>
+  <th>${escapeHTML(label)}</th>
+  <td>${escapeHTML(string)}</td>
+</tr>
+      `
+    }
+
+    function urlsRow () {
+      const items = accountData.urls
+        .map(url => {
+          const escaped = escapeHTML(url)
+          return `<a href="${escaped}" target=_blank>${escaped}</a>`
+        })
+        .join('')
+      return `<tr><th>URLs</th><td><ul>${items}</ul></td></tr>`
+    }
   }
 }
 
