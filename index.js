@@ -1610,34 +1610,27 @@ const fontAwesomeCredit = `
 function serveUserPage (request, response) {
   const { handle } = request.parameters
 
-  let accountData
-  runParallel([
-    done => storage.account.read(handle, (error, data) => {
+  runParallel({
+    account: done => storage.account.read(handle, (error, account) => {
       if (error) return done(error)
-      if (!data) {
+      if (!account) {
         var notFound = new Error('not found')
         notFound.statusCode = 404
         return done(error)
       }
-      accountData = data
-      done()
+      done(null, redactedAccount(account))
     })
-  ], error => {
+  }, (error, data) => {
     if (error) {
       if (error.statusCode === 404) return serve404(request, response)
       return serve500(request, response, error)
     }
-    render()
-  })
-
-  function render () {
-    response.setHeader('Content-Type', 'text/html')
-    response.end(html`
+    serveView(request, response, data.account, data => html`
 <!doctype html>
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${handle} / ${constants.website}</title>
+    <title>${data.handle} / ${constants.website}</title>
   </head>
   <body>
     ${header}
@@ -1645,25 +1638,29 @@ function serveUserPage (request, response) {
     <main>
       <img
           class=avatar
-          src="${gravatar.url(accountData.email, { size: 200, protocol: 'https' })}">
-      <h2>${handle}</h2>
+          src="${gravatar.url(data.email, { size: 200, protocol: 'https' })}">
+      <h2>${data.handle}</h2>
       <ul class=badges>${
         userBadges
-          .filter(badge => accountData.badges[badge.key])
+          .filter(badge => data.badges[badge.key])
           .map(badge => `<li>${badgeImage(badge)}</li>`)
       }</ul>
       <table>
-        ${accountData.name && row('Name', accountData.name)}
-        ${accountData.location && row('Location', accountData.location)}
-        ${accountData.urls.length > 0 && urlsRow()}
+        ${data.name && row('Name', data.name)}
+        ${data.location && row('Location', data.location)}
+        ${data.urls.length > 0 && html`
+        <tr>
+          <th>URLs</th>
+          <td><ul>${data.urls.map(urlLink)}</ul></td>
+        </tr>`}
         <tr>
           <th>Joined</th>
-          <td>${accountData.created}</td>
+          <td>${data.created}</td>
         </tr>
       </table>
       <h3>Projects</h3>
       <ul class=projects>
-        ${accountData.projects.map(element => html`
+        ${data.projects.map(element => html`
         <li>
           <a href=/~${handle}/${element.project}>${element.project}</a>
         </li>
@@ -1676,21 +1673,44 @@ function serveUserPage (request, response) {
   </body>
 </html>
     `)
+  })
+}
 
-    function row (label, string) {
-      return html`
+function redactedAccount (account) {
+  const publishable = [
+    'badges',
+    'created',
+    'email',
+    'handle',
+    'location',
+    'name',
+    'projects',
+    'urls'
+  ]
+  const clone = JSON.parse(JSON.stringify(account))
+  Object.keys(clone).forEach(key => {
+    if (!publishable.includes(key)) delete clone[key]
+  })
+  return clone
+}
+
+function row (label, string) {
+  return html`
 <tr>
   <th>${escapeHTML(label)}</th>
   <td>${escapeHTML(string)}</td>
 </tr>
-      `
-    }
+  `
+}
 
-    function urlsRow () {
-      const items = accountData.urls.map(urlLink)
-      return html`<tr><th>URLs</th><td><ul>${items}</ul></td></tr>`
-    }
+function serveView (request, response, data, view) {
+  const accept = request.headers.accept
+  if (accept === 'application/json') {
+    response.setHeader('Content-Type', 'application/json')
+    return response.end(JSON.stringify(data))
   }
+  response.setHeader('Content-Type', 'text/html')
+  response.end(view(data))
 }
 
 function urlLink (url) {
