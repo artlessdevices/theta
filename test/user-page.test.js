@@ -36,6 +36,8 @@ tape('user page', test => {
       .then(create => create.click())
       .then(() => browser.$('#createForm input[name="project"]'))
       .then(input => input.addValue(project))
+      .then(() => browser.$('#createForm input[name="url"]'))
+      .then(input => input.addValue('http://example.com'))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       // Find project link on user page.
@@ -82,6 +84,8 @@ tape('user JSON', test => {
       .then(create => create.click())
       .then(() => browser.$('#createForm input[name="project"]'))
       .then(input => input.addValue(project))
+      .then(() => browser.$('#createForm input[name="url"]'))
+      .then(input => input.addValue('http://example.com'))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       .then(() => {

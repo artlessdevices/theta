@@ -20,6 +20,7 @@
     "simple-concat-limit": "^2.0.3",
     "stripe": "^8.67.0",
     "url-parse": "^1.4.7",
+    "url-regex": "^5.0.0",
     "uuid": "^8.1.0"
   },
   "devDependencies": {

@@ -11,6 +11,7 @@ tape('project page', test => {
   const password = 'ana password'
   const email = 'ana@example.com'
   const project = 'apple'
+  const url = 'http://example.com'
   server((port, done) => {
     let browser
     webdriver()
@@ -30,13 +31,17 @@ tape('project page', test => {
       .then(create => create.click())
       .then(() => browser.$('#createForm input[name="project"]'))
       .then(input => input.addValue(project))
+      .then(() => browser.$('#createForm input[name="url"]'))
+      .then(input => input.addValue(url))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`))
       .then(() => browser.$('h2'))
       .then(h2 => h2.getText())
       .then(text => test.equal(text, project, 'project page'))
-      .then(() => browser.saveScreenshot('../test.png'))
+      .then(() => browser.$(`a[href="${url}"]`))
+      .then(link => link.waitForExist())
+      .then(() => test.pass('URL'))
       .then(() => finish())
       .catch(error => {
         test.fail(error, 'catch')
@@ -54,6 +59,7 @@ tape('project JSON', test => {
   const password = 'ana password'
   const email = 'ana@example.com'
   const project = 'apple'
+  const url = 'http://example.com'
   server((port, done) => {
     let browser
     webdriver()
@@ -73,6 +79,8 @@ tape('project JSON', test => {
       .then(create => create.click())
       .then(() => browser.$('#createForm input[name="project"]'))
       .then(input => input.addValue(project))
+      .then(() => browser.$('#createForm input[name="url"]'))
+      .then(input => input.addValue(url))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       .then(() => {
@@ -87,6 +95,7 @@ tape('project JSON', test => {
               test.ifError(error, 'no read error')
               const parsed = JSON.parse(buffer)
               test.equal(parsed.project, project, '.project')
+              test.deepEqual(parsed.urls, [url], '.urls')
               test.equal(typeof parsed.created, 'string', '.created')
               test.equal(typeof parsed.account, 'object', '.account')
               finish()

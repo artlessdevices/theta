@@ -2,6 +2,7 @@
 
 const Busboy = require('busboy')
 const FormData = require('form-data')
+const URLRegEx = require('url-regex')
 const constants = require('./constants')
 const cookie = require('cookie')
 const crypto = require('crypto')
@@ -462,6 +463,13 @@ function serveCreate (request, response) {
     project: {
       filter: e => e.toLowerCase().trim(),
       validate: projects.valid
+    },
+    url: {
+      filter: e => e.toLowerCase().trim(),
+      validate: e => URLRegEx({
+        exact: true,
+        strict: true
+      }).test(e)
     }
   }
 
@@ -476,7 +484,7 @@ function serveCreate (request, response) {
 
   function processBody (request, body, done) {
     const handle = request.account.handle
-    const { project } = body
+    const { project, url } = body
     const slug = `${handle}/${project}`
     const created = new Date().toISOString()
     runSeries([
@@ -494,6 +502,7 @@ function serveCreate (request, response) {
       done => storage.project.write(slug, {
         project,
         handle,
+        urls: [url],
         badges: {},
         created
       }, done),
@@ -533,8 +542,16 @@ function serveCreate (request, response) {
               name=project
               type=text
               pattern="^${projects.pattern}$"
-              value="${escapeHTML(data.project.value)}"
+              value="${escapeHTML(data.project.value || '')}"
               autofocus
+              required>
+        </p>
+        <p>
+          <label for=url>URL</label>
+          <input
+              name=url
+              type=url
+              value="${escapeHTML(data.project.url || '')}"
               required>
         </p>
         <button type=submit>${title}</button>
@@ -1651,7 +1668,7 @@ function serveUserPage (request, response) {
         ${data.urls.length > 0 && html`
         <tr>
           <th>URLs</th>
-          <td><ul>${data.urls.map(urlLink)}</ul></td>
+          <td><ul>${data.urls.map(url => `<li>${urlLink(url)}</li>`)}</ul></td>
         </tr>`}
         <tr>
           <th>Joined</th>
@@ -1822,6 +1839,10 @@ function serveProjectPage (request, response) {
           <th>Available</th>
           <td>${data.account.stripe.connected ? 'Yes' : 'No'}</td>
         </tr>
+        <tr>
+          <th>URLs</th>
+          <td><ul>${data.urls.map(url => `<li>${urlLink(url)}</li>`)}</ul></td>
+        </tr>
       </table>
     </main>
   </body>
@@ -1846,7 +1867,8 @@ function redactedProject (project) {
   return redacted(project, [
     'badges',
     'created',
-    'project'
+    'project',
+    'urls'
   ])
 }
 
