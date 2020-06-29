@@ -1677,7 +1677,7 @@ function serveUserPage (request, response) {
 }
 
 function redactedAccount (account) {
-  const publishable = [
+  const returned = redacted(account, [
     'badges',
     'created',
     'email',
@@ -1686,8 +1686,13 @@ function redactedAccount (account) {
     'name',
     'projects',
     'urls'
-  ]
-  const clone = JSON.parse(JSON.stringify(account))
+  ])
+  returned.stripe = { connected: account.stripe.connected }
+  return returned
+}
+
+function redacted (object, publishable) {
+  const clone = JSON.parse(JSON.stringify(object))
   Object.keys(clone).forEach(key => {
     if (!publishable.includes(key)) delete clone[key]
   })
@@ -1776,18 +1781,52 @@ function serveProjectPage (request, response) {
   const { handle, project } = request.parameters
   const slug = `${handle}/${project}`
 
-  let accountData, projectData
   runParallel({
     account: read(storage.account.read, handle, 'account'),
     project: read(storage.project.read, slug, 'project')
-  }, (error, results) => {
+  }, (error, data) => {
     if (error) {
       if (error.statusCode === 404) return serve404(request, response)
       return serve500(request, response, error)
     }
-    accountData = results.account
-    projectData = results.project
-    render()
+    const project = redactedProject(data.project)
+    project.account = redactedAccount(data.account)
+    project.slug = slug
+    serveView(request, response, project, data => html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${data.slug} / ${constants.website}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main>
+      <h2>${data.project}</h2>
+      <ul class=badges>${
+        projectBadges
+          .filter(badge => data.badges[badge.key])
+          .map(badge => `<li>${badgeImage(badge)}</li>`)
+      }</ul>
+      <table>
+        <tr>
+          <th>User</th>
+          <td><a href=/~${handle}>${handle}</a></td>
+        </tr>
+        <tr>
+          <th>Created</th>
+          <td>${data.created}</td>
+        </tr>
+        <tr>
+          <th>Available</th>
+          <td>${data.account.stripe.connected ? 'Yes' : 'No'}</td>
+        </tr>
+      </table>
+    </main>
+  </body>
+</html>
+    `)
   })
 
   function read (read, name, typeString) {
@@ -1801,46 +1840,14 @@ function serveProjectPage (request, response) {
       done(null, data)
     })
   }
+}
 
-  function render () {
-    const connected = accountData.stripe.connected
-    response.setHeader('Content-Type', 'text/html')
-    response.end(html`
-<!doctype html>
-<html lang=en-US>
-  <head>
-    ${meta}
-    <title>${slug} / ${constants.website}</title>
-  </head>
-  <body>
-    ${header}
-    ${nav(request)}
-    <main>
-      <h2>${project}</h2>
-      <ul class=badges>${
-        projectBadges
-          .filter(badge => projectData.badges[badge.key])
-          .map(badge => `<li>${badgeImage(badge)}</li>`)
-      }</ul>
-      <table>
-        <tr>
-          <th>User</th>
-          <td><a href=/~${handle}>${handle}</a></td>
-        </tr>
-        <tr>
-          <th>Created</th>
-          <td>${projectData.created}</td>
-        </tr>
-        <tr>
-          <th>Available</th>
-          <td>${connected ? 'Yes' : 'No'}</td>
-        </tr>
-      </table>
-    </main>
-  </body>
-</html>
-    `)
-  }
+function redactedProject (project) {
+  return redacted(project, [
+    'badges',
+    'created',
+    'project'
+  ])
 }
 
 function serveStripeWebhook (request, response) {

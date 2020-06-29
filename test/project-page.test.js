@@ -1,6 +1,8 @@
-const server = require('./server')
+const http = require('http')
 const login = require('./login')
+const server = require('./server')
 const signup = require('./signup')
+const simpleConcat = require('simple-concat')
 const tape = require('tape')
 const webdriver = require('./webdriver')
 
@@ -36,6 +38,62 @@ tape('project page', test => {
       .then(text => test.equal(text, project, 'project page'))
       .then(() => browser.saveScreenshot('../test.png'))
       .then(() => finish())
+      .catch(error => {
+        test.fail(error, 'catch')
+        finish()
+      })
+    function finish () {
+      test.end()
+      done()
+    }
+  })
+})
+
+tape('project JSON', test => {
+  const handle = 'ana'
+  const password = 'ana password'
+  const email = 'ana@example.com'
+  const project = 'apple'
+  server((port, done) => {
+    let browser
+    webdriver()
+      .then(loaded => { browser = loaded })
+      .then(() => {
+        return new Promise((resolve, reject) => signup({
+          browser, port, handle, password, email
+        }, error => {
+          if (error) reject(error)
+          resolve()
+        }))
+      })
+      .then(() => login({ browser, port, handle, password }))
+      .then(() => browser.$('=Account'))
+      .then(account => account.click())
+      .then(() => browser.$('=Create Project'))
+      .then(create => create.click())
+      .then(() => browser.$('#createForm input[name="project"]'))
+      .then(input => input.addValue(project))
+      .then(() => browser.$('#createForm button[type="submit"]'))
+      .then(submit => submit.click())
+      .then(() => {
+        http.request({
+          port,
+          path: `/~${handle}/${project}`,
+          headers: { Accept: 'application/json' }
+        })
+          .once('response', response => {
+            test.equal(response.statusCode, 200, '200')
+            simpleConcat(response, (error, buffer) => {
+              test.ifError(error, 'no read error')
+              const parsed = JSON.parse(buffer)
+              test.equal(parsed.project, project, '.project')
+              test.equal(typeof parsed.created, 'string', '.created')
+              test.equal(typeof parsed.account, 'object', '.account')
+              finish()
+            })
+          })
+          .end()
+      })
       .catch(error => {
         test.fail(error, 'catch')
         finish()
