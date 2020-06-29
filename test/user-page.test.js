@@ -1,3 +1,4 @@
+const createProject = require('./create-project')
 const http = require('http')
 const login = require('./login')
 const server = require('./server')
@@ -6,13 +7,14 @@ const simpleConcat = require('simple-concat')
 const tape = require('tape')
 const webdriver = require('./webdriver')
 
+const handle = 'ana'
+const password = 'ana password'
+const email = 'ana@example.com'
+const project = 'apple'
+const url = 'http://example.com'
+const price = 11
+
 tape('user page', test => {
-  const handle = 'ana'
-  const password = 'ana password'
-  const email = 'ana@example.com'
-  const project = 'apple'
-  const url = 'http://example.com'
-  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -25,25 +27,14 @@ tape('user page', test => {
           resolve()
         }))
       })
-      // Browser user page.
+      // Browse user page.
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}`))
       .then(() => browser.$('h2'))
       .then(h2 => h2.getText())
       .then(text => test.equal(text, handle, 'handle'))
       // Create project.
       .then(() => login({ browser, port, handle, password }))
-      .then(() => browser.$('=Account'))
-      .then(account => account.click())
-      .then(() => browser.$('=Create Project'))
-      .then(create => create.click())
-      .then(() => browser.$('#createForm input[name="project"]'))
-      .then(input => input.addValue(project))
-      .then(() => browser.$('#createForm input[name="url"]'))
-      .then(input => input.addValue(url))
-      .then(() => browser.$('#createForm input[name="price"]'))
-      .then(input => input.addValue(price))
-      .then(() => browser.$('#createForm button[type="submit"]'))
-      .then(submit => submit.click())
+      .then(() => createProject({ browser, port, project, url, price }))
       // Find project link on user page.
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}`))
       .then(() => browser.$('.projects'))
@@ -64,10 +55,6 @@ tape('user page', test => {
 })
 
 tape('user JSON', test => {
-  const handle = 'ana'
-  const password = 'ana password'
-  const email = 'ana@example.com'
-  const project = 'apple'
   server((port, done) => {
     let browser
     webdriver()

@@ -1,3 +1,4 @@
+const createProject = require('./create-project')
 const http = require('http')
 const login = require('./login')
 const server = require('./server')
@@ -6,13 +7,14 @@ const simpleConcat = require('simple-concat')
 const tape = require('tape')
 const webdriver = require('./webdriver')
 
+const handle = 'ana'
+const password = 'ana password'
+const email = 'ana@example.com'
+const project = 'apple'
+const url = 'http://example.com'
+const price = 11
+
 tape('project page', test => {
-  const handle = 'ana'
-  const password = 'ana password'
-  const email = 'ana@example.com'
-  const project = 'apple'
-  const url = 'http://example.com'
-  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -26,18 +28,7 @@ tape('project page', test => {
         }))
       })
       .then(() => login({ browser, port, handle, password }))
-      .then(() => browser.$('=Account'))
-      .then(account => account.click())
-      .then(() => browser.$('=Create Project'))
-      .then(create => create.click())
-      .then(() => browser.$('#createForm input[name="project"]'))
-      .then(input => input.addValue(project))
-      .then(() => browser.$('#createForm input[name="url"]'))
-      .then(input => input.addValue(url))
-      .then(() => browser.$('#createForm input[name="price"]'))
-      .then(input => input.addValue(price))
-      .then(() => browser.$('#createForm button[type="submit"]'))
-      .then(submit => submit.click())
+      .then(() => createProject({ browser, port, project, url, price }))
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`))
       .then(() => browser.$('h2'))
       .then(h2 => h2.getText())
@@ -61,12 +52,6 @@ tape('project page', test => {
 })
 
 tape('project JSON', test => {
-  const handle = 'ana'
-  const password = 'ana password'
-  const email = 'ana@example.com'
-  const project = 'apple'
-  const url = 'http://example.com'
-  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -80,18 +65,7 @@ tape('project JSON', test => {
         }))
       })
       .then(() => login({ browser, port, handle, password }))
-      .then(() => browser.$('=Account'))
-      .then(account => account.click())
-      .then(() => browser.$('=Create Project'))
-      .then(create => create.click())
-      .then(() => browser.$('#createForm input[name="project"]'))
-      .then(input => input.addValue(project))
-      .then(() => browser.$('#createForm input[name="url"]'))
-      .then(input => input.addValue(url))
-      .then(() => browser.$('#createForm input[name="price"]'))
-      .then(input => input.addValue(price))
-      .then(() => browser.$('#createForm button[type="submit"]'))
-      .then(submit => submit.click())
+      .then(() => createProject({ browser, port, project, url, price }))
       .then(() => {
         http.request({
           port,
