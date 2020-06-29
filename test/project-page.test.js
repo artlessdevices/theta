@@ -12,6 +12,7 @@ tape('project page', test => {
   const email = 'ana@example.com'
   const project = 'apple'
   const url = 'http://example.com'
+  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -33,6 +34,8 @@ tape('project page', test => {
       .then(input => input.addValue(project))
       .then(() => browser.$('#createForm input[name="url"]'))
       .then(input => input.addValue(url))
+      .then(() => browser.$('#createForm input[name="price"]'))
+      .then(input => input.addValue(price))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`))
@@ -42,6 +45,9 @@ tape('project page', test => {
       .then(() => browser.$(`a[href="${url}"]`))
       .then(link => link.waitForExist())
       .then(() => test.pass('URL'))
+      .then(() => browser.$('#price'))
+      .then(price => price.getText())
+      .then(text => test.equal(text, `$${price}`, 'price'))
       .then(() => finish())
       .catch(error => {
         test.fail(error, 'catch')
@@ -60,6 +66,7 @@ tape('project JSON', test => {
   const email = 'ana@example.com'
   const project = 'apple'
   const url = 'http://example.com'
+  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -81,6 +88,8 @@ tape('project JSON', test => {
       .then(input => input.addValue(project))
       .then(() => browser.$('#createForm input[name="url"]'))
       .then(input => input.addValue(url))
+      .then(() => browser.$('#createForm input[name="price"]'))
+      .then(input => input.addValue(price))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       .then(() => {
@@ -95,6 +104,7 @@ tape('project JSON', test => {
               test.ifError(error, 'no read error')
               const parsed = JSON.parse(buffer)
               test.equal(parsed.project, project, '.project')
+              test.equal(parsed.price, price, '.price')
               test.deepEqual(parsed.urls, [url], '.urls')
               test.equal(typeof parsed.created, 'string', '.created')
               test.equal(typeof parsed.account, 'object', '.account')

@@ -11,6 +11,8 @@ tape('user page', test => {
   const password = 'ana password'
   const email = 'ana@example.com'
   const project = 'apple'
+  const url = 'http://example.com'
+  const price = 11
   server((port, done) => {
     let browser
     webdriver()
@@ -37,7 +39,9 @@ tape('user page', test => {
       .then(() => browser.$('#createForm input[name="project"]'))
       .then(input => input.addValue(project))
       .then(() => browser.$('#createForm input[name="url"]'))
-      .then(input => input.addValue('http://example.com'))
+      .then(input => input.addValue(url))
+      .then(() => browser.$('#createForm input[name="price"]'))
+      .then(input => input.addValue(price))
       .then(() => browser.$('#createForm button[type="submit"]'))
       .then(submit => submit.click())
       // Find project link on user page.

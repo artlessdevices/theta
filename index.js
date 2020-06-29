@@ -456,6 +456,9 @@ function randomNonce () {
   return crypto.randomBytes(32).toString('hex')
 }
 
+const MINIMUM_PRICE = 3
+const MAXIMUM_PRICE = 9999
+
 function serveCreate (request, response) {
   const title = 'Create Project'
 
@@ -470,6 +473,10 @@ function serveCreate (request, response) {
         exact: true,
         strict: true
       }).test(e)
+    },
+    price: {
+      filter: e => parseInt(e),
+      validate: e => !isNaN(e) && e >= MINIMUM_PRICE
     }
   }
 
@@ -484,7 +491,7 @@ function serveCreate (request, response) {
 
   function processBody (request, body, done) {
     const handle = request.account.handle
-    const { project, url } = body
+    const { project, url, price } = body
     const slug = `${handle}/${project}`
     const created = new Date().toISOString()
     runSeries([
@@ -503,6 +510,7 @@ function serveCreate (request, response) {
         project,
         handle,
         urls: [url],
+        price,
         badges: {},
         created
       }, done),
@@ -553,6 +561,16 @@ function serveCreate (request, response) {
               type=url
               value="${escapeHTML(data.project.url || '')}"
               required>
+        </p>
+        <p>
+          <label for=price>Price</label>
+          $<input
+            name=price
+            type=price
+            value="${escapeHTML(data.project.price || '')}"
+            min="${MINIMUM_PRICE.toString()}"
+            min="${MAXIMUM_PRICE.toString()}"
+            required>
         </p>
         <button type=submit>${title}</button>
       </form>
@@ -1832,6 +1850,10 @@ function serveProjectPage (request, response) {
           <td><a href=/~${handle}>${handle}</a></td>
         </tr>
         <tr>
+          <th>Price</th>
+          <td><span id=price>$${data.price.toString()}</span></td>
+        </tr>
+        <tr>
           <th>Created</th>
           <td>${data.created}</td>
         </tr>
@@ -1867,6 +1889,7 @@ function redactedProject (project) {
   return redacted(project, [
     'badges',
     'created',
+    'price',
     'project',
     'urls'
   ])
