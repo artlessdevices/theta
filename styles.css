@@ -62,5 +62,7 @@ button, .button {
 }
 
 a[href] .logo {
+  display: inline;
   margin-right: 0.5ex;
+  vertical-align: bottom;
 }
