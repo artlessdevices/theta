@@ -111,9 +111,16 @@ const projectBadges = [
   }
 ]
 
+const hostLogos = [
+  { icon: 'twitter', hostname: 'twitter.com' },
+  { icon: 'github', hostname: 'github.com' },
+  { icon: 'gitlab', hostname: 'gitlab.com' }
+]
+
 const icons = []
   .concat(userBadges.map(badge => badge.icon))
   .concat(projectBadges.map(badge => badge.icon))
+  .concat(hostLogos.map(host => host.icon))
 
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -1680,15 +1687,22 @@ function serveUserPage (request, response) {
     }
 
     function urlsRow () {
-      const items = accountData.urls
-        .map(url => {
-          const escaped = escapeHTML(url)
-          return `<a href="${escaped}" target=_blank>${escaped}</a>`
-        })
-        .join('')
-      return `<tr><th>URLs</th><td><ul>${items}</ul></td></tr>`
+      const items = accountData.urls.map(urlLink)
+      return html`<tr><th>URLs</th><td><ul>${items}</ul></td></tr>`
     }
   }
+}
+
+function urlLink (url) {
+  const escaped = escapeHTML(url)
+  const shortened = escapeHTML(url.replace(/^https?:\/\//, ''))
+  const parsed = parseURL(url)
+  const logo = hostLogos.find(host => parsed.hostname === host.hostname)
+  return html`
+<a href="${escaped}" target=_blank>${
+  logo && `<img class=logo alt=logo src=/${logo.icon}.svg>`
+}${shortened}</a>
+  `
 }
 
 function badgeImage ({ key, display, title, icon }) {
@@ -1722,6 +1736,10 @@ function serveBadges (request, response) {
       <ul class=badges>${
         projectBadges.map(badge => `<li>${badgeImage(badge)}</li>`)
       }</ul>
+      <h2>Host Logos</h2>
+      ${urlLink('https://github.com/artlessdevices')}
+      ${urlLink('https://gitlab.com/kemitchell')}
+      ${urlLink('https://twitter.com/licensezero')}
     </main>
     <footer role=contentinfo>
       <p>

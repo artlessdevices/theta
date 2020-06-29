@@ -55,8 +55,12 @@ button, .button {
   margin-right: 0;
 }
 
-.badge {
+.badge, .logo {
   height: 1.5rem;
   user-select: none;
   width: 1.5rem;
+}
+
+a[href] .logo {
+  margin-right: 0.5ex;
 }
