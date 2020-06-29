@@ -469,7 +469,7 @@ function serveCreate (request, response) {
     },
     url: {
       filter: e => e.toLowerCase().trim(),
-      validate: e => URLRegEx({
+      validate: e => e.length < 128 && URLRegEx({
         exact: true,
         strict: true
       }).test(e)
