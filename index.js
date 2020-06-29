@@ -320,6 +320,7 @@ function serveSignUp (request, response) {
                 location: null,
                 urls: [],
                 badges: {},
+                projects: [],
                 created: new Date().toISOString(),
                 confirmed: false,
                 failures: 0,
@@ -470,6 +471,7 @@ function serveCreate (request, response) {
     const handle = request.account.handle
     const { project } = body
     const slug = `${handle}/${project}`
+    const created = new Date().toISOString()
     runSeries([
       done => {
         storage.project.exists(slug, (error, exists) => {
@@ -486,7 +488,11 @@ function serveCreate (request, response) {
         project,
         handle,
         badges: {},
-        created: new Date().toISOString()
+        created
+      }, done),
+      done => storage.account.update(handle, (data, done) => {
+        data.projects.push({ project, created })
+        done()
       }, done)
     ], done)
   }
@@ -1648,6 +1654,14 @@ function serveUserPage (request, response) {
           <td>${accountData.created}</td>
         </tr>
       </table>
+      <h3>Projects</h3>
+      <ul class=projects>
+        ${accountData.projects.map(element => html`
+        <li>
+          <a href=/~${handle}/${element.project}>${element.project}</a>
+        </li>
+        `)}
+      </ul>
     </main>
     <footer role=contentinfo>
       ${fontAwesomeCredit}

@@ -68,7 +68,7 @@ function simpleFiles (subdirectory, options) {
         callback(null, true)
       })
     },
-    update: (id, properties, callback) => {
+    update: (id, updater, callback) => {
       const file = filePath(id)
       lock(file, unlock => {
         callback = unlock(callback)
@@ -76,12 +76,22 @@ function simpleFiles (subdirectory, options) {
           /* istanbul ignore if */
           if (error) return callback(error)
           if (!record) return callback(null, null)
-          Object.assign(record, properties)
-          writeFile({ file, data: record, serialization }, error => {
-            /* istanbul ignore if */
-            if (error) return callback(error)
-            callback(null, record)
-          })
+          if (typeof updater === 'function') {
+            updater(record, error => {
+              if (error) return callback(error)
+              write()
+            })
+          } else {
+            Object.assign(record, updater)
+            write()
+          }
+          function write () {
+            writeFile({ file, data: record, serialization }, error => {
+              /* istanbul ignore if */
+              if (error) return callback(error)
+              callback(null, record)
+            })
+          }
         })
       })
     },
