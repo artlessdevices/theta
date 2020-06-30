@@ -17,6 +17,7 @@
     "run-parallel": "^1.1.9",
     "run-series": "^1.1.8",
     "secure-password": "^4.0.0",
+    "send": "^0.17.1",
     "simple-concat-limit": "^2.0.3",
     "stripe": "^8.67.0",
     "url-parse": "^1.4.7",

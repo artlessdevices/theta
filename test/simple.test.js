@@ -20,7 +20,7 @@ simple({
 simple({
   path: '/styles.css',
   status: 200,
-  mime: 'text/css',
+  mime: 'text/css; charset=UTF-8',
   content: 'font-family'
 })
 
@@ -44,6 +44,20 @@ simple({
   status: 405,
   mime: 'text/plain',
   content: 'Method Not Allowed'
+})
+
+simple({
+  method: 'GET',
+  path: '/github.svg',
+  status: 200,
+  mime: 'image/svg+xml'
+})
+
+simple({
+  method: 'GET',
+  path: '/award.svg',
+  status: 200,
+  mime: 'image/svg+xml'
 })
 
 function simple ({

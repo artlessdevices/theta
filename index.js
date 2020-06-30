@@ -10,7 +10,6 @@ const csrf = require('./csrf')
 const doNotCache = require('do-not-cache')
 const escapeHTML = require('escape-html')
 const expired = require('./expired')
-const fs = require('fs')
 const gravatar = require('gravatar')
 const html = require('./html')
 const https = require('https')
@@ -23,6 +22,7 @@ const path = require('path')
 const querystring = require('querystring')
 const runParallel = require('run-parallel')
 const runSeries = require('run-series')
+const send = require('send')
 const simpleConcatLimit = require('simple-concat-limit')
 const storage = require('./storage')
 const uuid = require('uuid')
@@ -228,15 +228,11 @@ function serveIndex (request, response) {
 }
 
 function serveStyles (request, response) {
-  const file = path.join(__dirname, 'styles.css')
-  response.setHeader('Content-Type', 'text/css')
-  fs.createReadStream(file).pipe(response)
+  send(request, path.join(__dirname, 'styles.css')).pipe(response)
 }
 
 function serveIcon (request, response, icon) {
-  const file = path.join(__dirname, 'icons', `${icon}.svg`)
-  response.setHeader('Content-Type', 'image/svg+xml')
-  fs.createReadStream(file).pipe(response)
+  send(request, path.join(__dirname, 'icons', `${icon}.svg`)).pipe(response)
 }
 
 // https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
