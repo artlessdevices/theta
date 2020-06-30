@@ -479,7 +479,7 @@ function serveCreate (request, response) {
       validate: projects.valid
     },
     url: {
-      filter: e => e.toLowerCase().trim(),
+      filter: e => e.trim(),
       validate: e => e.length < 128 && URLRegEx({
         exact: true,
         strict: true
