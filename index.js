@@ -459,6 +459,17 @@ function randomNonce () {
 const MINIMUM_PRICE = 3
 const MAXIMUM_PRICE = 9999
 
+const projectCategories = [
+  'application',
+  'plugin',
+  'library',
+  'framework',
+  'service',
+  'development tool',
+  'operating system',
+  'interpreter'
+]
+
 function serveCreate (request, response) {
   const title = 'Create Project'
 
@@ -477,6 +488,10 @@ function serveCreate (request, response) {
     price: {
       filter: e => parseInt(e),
       validate: e => !isNaN(e) && e >= MINIMUM_PRICE
+    },
+    category: {
+      filter: e => e.toLowerCase().trim(),
+      validate: e => projectCategories.includes(e)
     }
   }
 
@@ -491,7 +506,7 @@ function serveCreate (request, response) {
 
   function processBody (request, body, done) {
     const handle = request.account.handle
-    const { project, url, price } = body
+    const { project, url, price, category } = body
     const slug = `${handle}/${project}`
     const created = new Date().toISOString()
     runSeries([
@@ -512,6 +527,7 @@ function serveCreate (request, response) {
         urls: [url],
         price,
         badges: {},
+        category,
         created
       }, done),
       done => storage.account.update(handle, (data, done) => {
@@ -561,6 +577,14 @@ function serveCreate (request, response) {
               type=url
               value="${escapeHTML(data.project.url || '')}"
               required>
+        </p>
+        <p>
+          <label for=category>Category</label>
+          <select
+              name=category
+              required>
+            ${projectCategories.map(c => `<option value="${c}">${c}</option>`)}
+          </select>
         </p>
         <p>
           <label for=price>Price</label>
@@ -1854,6 +1878,10 @@ function serveProjectPage (request, response) {
           <td><span id=price>$${data.price.toString()}</span></td>
         </tr>
         <tr>
+          <th>Category</th>
+          <td><span id=category>${data.category}</span></td>
+        </tr>
+        <tr>
           <th>Created</th>
           <td>${data.created}</td>
         </tr>
@@ -1888,6 +1916,7 @@ function serveProjectPage (request, response) {
 function redactedProject (project) {
   return redacted(project, [
     'badges',
+    'category',
     'created',
     'price',
     'project',

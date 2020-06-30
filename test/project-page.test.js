@@ -13,6 +13,7 @@ const email = 'ana@example.com'
 const project = 'apple'
 const url = 'http://example.com'
 const price = 11
+const category = 'library'
 
 tape('project page', test => {
   server((port, done) => {
@@ -28,7 +29,7 @@ tape('project page', test => {
         }))
       })
       .then(() => login({ browser, port, handle, password }))
-      .then(() => createProject({ browser, port, project, url, price }))
+      .then(() => createProject({ browser, port, project, url, price, category }))
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`))
       .then(() => browser.$('h2'))
       .then(h2 => h2.getText())
@@ -39,6 +40,9 @@ tape('project page', test => {
       .then(() => browser.$('#price'))
       .then(price => price.getText())
       .then(text => test.equal(text, `$${price}`, 'price'))
+      .then(() => browser.$('#category'))
+      .then(price => price.getText())
+      .then(text => test.equal(text, category, 'category'))
       .then(() => finish())
       .catch(error => {
         test.fail(error, 'catch')
@@ -65,7 +69,7 @@ tape('project JSON', test => {
         }))
       })
       .then(() => login({ browser, port, handle, password }))
-      .then(() => createProject({ browser, port, project, url, price }))
+      .then(() => createProject({ browser, port, project, url, price, category }))
       .then(() => {
         http.request({
           port,
@@ -79,6 +83,7 @@ tape('project JSON', test => {
               const parsed = JSON.parse(buffer)
               test.equal(parsed.project, project, '.project')
               test.equal(parsed.price, price, '.price')
+              test.equal(parsed.category, category, '.category')
               test.deepEqual(parsed.urls, [url], '.urls')
               test.equal(typeof parsed.created, 'string', '.created')
               test.equal(typeof parsed.account, 'object', '.account')
