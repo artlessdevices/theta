@@ -31,7 +31,7 @@
     "parse5": "^6.0.0",
     "rimraf": "^3.0.2",
     "simple-concat": "^1.0.0",
-    "sodium-native": "^3.1.1",
+    "sodium-native": "^3.2.0",
     "standard": "^14.3.3",
     "tape": "^5.0.1",
     "webdriverio": "^6.1.22"
