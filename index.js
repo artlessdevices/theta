@@ -220,7 +220,7 @@ function serveIndex (request, response) {
     showcase: done => {
       storage.showcase.read('homepage', (error, entries) => {
         if (error) return done(error)
-        runParallel(entries.map(entry => {
+        runParallel((entries || []).map(entry => {
           return done => storage.project.read(`${entry.handle}/${entry.project}`, done)
         }), done)
       })
