@@ -217,7 +217,14 @@ function serveIndex (request, response) {
   if (request.method !== 'GET') return serve405(request, response)
   doNotCache(response)
   runParallel({
-    showcase: done => storage.showcase.read('homepage', done)
+    showcase: done => {
+      storage.showcase.read('homepage', (error, entries) => {
+        if (error) return done(error)
+        runParallel(entries.map(entry => {
+          return done => storage.project.read(`${entry.handle}/${entry.project}`, done)
+        }), done)
+      })
+    }
   }, (error, data) => {
     if (error) return serve500(request, response, error)
     response.setHeader('Content-Type', 'text/html')
@@ -237,6 +244,10 @@ function serveIndex (request, response) {
         <li>
           <a href=/~${entry.handle}/${entry.project}
             >${entry.project}</a>
+          <a href=/~${entry.handle}>${entry.handle}</a>
+          <span class=category>${entry.category}</span>
+          <span class=currency>$${entry.price.toString()}</span>
+          ${badgesList(entry)}
         </li>
         `)}
       </ol>
@@ -1875,11 +1886,7 @@ function serveProjectPage (request, response) {
     ${nav(request)}
     <main>
       <h2>${data.project}</h2>
-      <ul class=badges>${
-        projectBadges
-          .filter(badge => data.badges[badge.key])
-          .map(badge => `<li>${badgeImage(badge)}</li>`)
-      }</ul>
+      ${badgesList(data)}
       <table>
         <tr>
           <th>User</th>
@@ -1887,7 +1894,7 @@ function serveProjectPage (request, response) {
         </tr>
         <tr>
           <th>Price</th>
-          <td><span id=price>$${data.price.toString()}</span></td>
+          <td><span id=price class=currency>$${data.price.toString()}</span></td>
         </tr>
         <tr>
           <th>Category</th>
@@ -1923,6 +1930,16 @@ function serveProjectPage (request, response) {
       done(null, data)
     })
   }
+}
+
+function badgesList (project) {
+  return html`
+<ul class=badges>${
+  projectBadges
+    .filter(badge => project.badges[badge.key])
+    .map(badge => `<li>${badgeImage(badge)}</li>`)
+}</ul>
+  `
 }
 
 function redactedProject (project) {
