@@ -142,7 +142,8 @@ module.exports = (request, response) => {
   for (let index = 0; index < icons.length; index++) {
     const icon = icons[index]
     if (pathname === `/${icon}.svg`) {
-      return serveFile(request, response, `icons/${icon}.svg`)
+      const file = path.join('icons', `${icon}.svg`)
+      return serveFile(request, response, file)
     }
   }
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
