@@ -10,6 +10,7 @@ module.exports = {
   email: simpleFiles('emails'),
   token: simpleFiles('tokens'),
   session: simpleFiles('sessions'),
+  showcase: simpleFiles('showcases'),
   stripeID: simpleFiles('stripeIDs'),
   lock
 }

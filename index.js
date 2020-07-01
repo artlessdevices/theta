@@ -216,8 +216,12 @@ function logoutButton (request) {
 function serveIndex (request, response) {
   if (request.method !== 'GET') return serve405(request, response)
   doNotCache(response)
-  response.setHeader('Content-Type', 'text/html')
-  response.end(html`
+  runParallel({
+    showcase: done => storage.showcase.read('homepage', done)
+  }, (error, data) => {
+    if (error) return serve500(request, response, error)
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
 <!doctype html>
 <html lang=en-US>
   <head>
@@ -227,10 +231,20 @@ function serveIndex (request, response) {
   <body>
     ${header}
     ${nav(request)}
-    <main role=main></main>
+    <main role=main>
+      <ol class=showcase>
+        ${(data.showcase || []).map(entry => html`
+        <li>
+          <a href=/~${entry.handle}/${entry.project}
+            >${entry.project}</a>
+        </li>
+        `)}
+      </ol>
+    </main>
   </body>
 </html>
-  `)
+    `)
+  })
 }
 
 function serveFile (request, response, file) {

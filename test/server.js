@@ -26,7 +26,7 @@ module.exports = (callback, port) => {
       throw error
     }
     directory = tmp
-    process.env.DIRECTORY = path.join(tmp, 'indexes')
+    process.env.DIRECTORY = tmp
     webServer = http.createServer((request, response) => {
       addLoggers(request, response)
       handle(request, response)
