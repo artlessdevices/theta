@@ -133,12 +133,16 @@ module.exports = (request, response) => {
       handler(request, response)
     })
   }
-  if (pathname === '/styles.css') return serveStyles(request, response)
-  if (pathname === '/credits.txt') return serveCredits(request, response)
+  if (pathname === '/styles.css') {
+    return serveFile(request, response, 'styles.css')
+  }
+  if (pathname === '/credits.txt') {
+    return serveFile(request, response, 'credits.txt')
+  }
   for (let index = 0; index < icons.length; index++) {
     const icon = icons[index]
     if (pathname === `/${icon}.svg`) {
-      return serveIcon(request, response, icon)
+      return serveFile(request, response, `icons/${icon}.svg`)
     }
   }
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
@@ -228,16 +232,8 @@ function serveIndex (request, response) {
   `)
 }
 
-function serveStyles (request, response) {
-  send(request, path.join(__dirname, 'styles.css')).pipe(response)
-}
-
-function serveCredits (request, response) {
-  send(request, path.join(__dirname, 'credits.txt')).pipe(response)
-}
-
-function serveIcon (request, response, icon) {
-  send(request, path.join(__dirname, 'icons', `${icon}.svg`)).pipe(response)
+function serveFile (request, response, file) {
+  send(request, path.join(__dirname, file)).pipe(response)
 }
 
 // https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
