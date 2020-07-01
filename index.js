@@ -445,7 +445,7 @@ function serveSignUp (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -466,7 +466,7 @@ function serveSignUp (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -605,7 +605,7 @@ function serveCreate (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -688,7 +688,7 @@ function serveLogIn (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -836,7 +836,7 @@ function serveAccount (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Account / ${constants.website}</title>
+    <title>Account</title>
   </head>
   <body>
     ${header}
@@ -923,7 +923,7 @@ function serveHandle (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -958,7 +958,7 @@ function serveHandle (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1010,7 +1010,7 @@ function serveEMail (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1037,7 +1037,7 @@ function serveEMail (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1111,7 +1111,7 @@ function getAuthenticated (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1164,7 +1164,7 @@ function getWithToken (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1201,7 +1201,7 @@ function invalidToken (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1245,7 +1245,7 @@ function postPassword (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1399,7 +1399,7 @@ function serveReset (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1462,7 +1462,7 @@ function serveReset (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1530,7 +1530,7 @@ function serveConfirm (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${title} / ${constants.website}</title>
+    <title>${title}</title>
   </head>
   <body>
     ${header}
@@ -1638,7 +1638,7 @@ function serveConnected (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Stripe Error / ${constants.website}</title>
+    <title>Stripe Error</title>
   </head>
   <body>
     ${header}
@@ -1706,7 +1706,7 @@ function serveDisconnect (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Disconnected Stripe Account / ${constants.website}</title>
+    <title>Disconnected Stripe Account</title>
   </head>
   <body>
     ${header}
@@ -1753,7 +1753,7 @@ function serveUserPage (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${data.handle} / ${constants.website}</title>
+    <title>${data.handle}</title>
   </head>
   <body>
     ${header}
@@ -1929,7 +1929,7 @@ function serveProjectPage (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>${data.slug} / ${constants.website}</title>
+    <title>${data.slug}</title>
   </head>
   <body>
     ${header}
@@ -2298,7 +2298,7 @@ function serve404 (request, response) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Not Found / ${constants.website}</title>
+    <title>Not Found</title>
   </head>
   <body>
     ${header}
@@ -2320,7 +2320,7 @@ function serve500 (request, response, error) {
 <html lang=en-US>
   <head>
     ${meta}
-    <title>Internal Error / ${constants.website}</title>
+    <title>Internal Error</title>
   </head>
   <body>
     <main>
