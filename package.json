@@ -45,10 +45,11 @@
   },
   "scripts": {
     "credits": "cp credits.txt.header credits.txt ; creditstxt >> credits.txt",
-    "precommit": "npm run lint",
+    "precommit": "npm run lint && npm run gotchas",
     "coverage": "nyc --reporter=lcov --reporter=text npm run test",
     "deps": "depcheck",
     "fix": "standard --fix",
+    "gotchas": "! git grep tape.only test && ! git grep console.log test && ! git grep console.error test",
     "licenses": "licensee --errors-only",
     "lint": "standard",
     "test": "NODE_ENV=test tape test/*.test.js"

@@ -39,7 +39,7 @@ module.exports = (callback, port) => {
       if (environment.missing.length !== 0) {
         cleanup()
         environment.missing.forEach(missing => {
-          console.error(`Missing environment variable: ${missing}`)
+          process.stderr.write(`Missing environment variable: ${missing}\n`)
         })
         assert(false)
       }

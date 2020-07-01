@@ -35,7 +35,6 @@ tape('homepage', test => {
               string.includes(`<a href=/~${handle}/${project}`),
               'links to showcased'
             )
-            console.log(string)
             test.end()
             close()
           })
