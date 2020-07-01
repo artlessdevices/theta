@@ -27,24 +27,27 @@ const simpleConcatLimit = require('simple-concat-limit')
 const storage = require('./storage')
 const uuid = require('uuid')
 
+// Read environment variables.
 const environment = require('./environment')()
 const stripe = require('stripe')(environment.STRIPE_SECRET_KEY)
 
+// Router for a Few Authenticated Endpoints
 const routes = require('http-hash')()
-routes.set('/', serveIndex)
+routes.set('/', serveHomepage)
 routes.set('/signup', serveSignUp)
 routes.set('/login', serveLogIn)
 routes.set('/logout', serveLogOut)
-routes.set('/create', serveCreate)
-routes.set('/account', serveAccount)
-routes.set('/handle', serveHandle)
-routes.set('/email', serveEMail)
-routes.set('/password', servePassword)
-routes.set('/reset', serveReset)
-routes.set('/confirm', serveConfirm)
-routes.set('/connected', serveConnected)
-routes.set('/disconnect', serveDisconnect)
+routes.set('/create', serveCreate) // create projects
+routes.set('/account', serveAccount) // account pages
+routes.set('/handle', serveHandle) // remind of handles
+routes.set('/email', serveEMail) // change account e-mail
+routes.set('/password', servePassword) // change passwords
+routes.set('/reset', serveReset) // reset passwords
+routes.set('/confirm', serveConfirm) // confirm links in e-mails
+routes.set('/connected', serveConnected) // confirm Stripe connected
+routes.set('/disconnect', serveDisconnect) // disconnect Stripe
 
+// Validation Rules for Account Names
 const handles = (() => {
   const pattern = '[a-z0-9]{3,16}'
   const re = new RegExp(`^${pattern}$`)
@@ -59,6 +62,7 @@ const handles = (() => {
   }
 })()
 
+// Validation Rules for Project Names
 const projects = (() => {
   const pattern = '[a-z0-9]{3,16}'
   const re = new RegExp(`^${pattern}$`)
@@ -73,10 +77,12 @@ const projects = (() => {
   }
 })()
 
+// Regular Expression For /~{handle} and /~{handle}/{project} Routing
 const userPagePathRE = new RegExp(`^/~(${handles.pattern})$`)
 const projectPagePathRE = new RegExp(`^/~(${handles.pattern})/(${projects.pattern})$`)
 
-const userBadges = [
+// Badges for Accounts
+const accountBadges = [
   {
     key: 'award',
     display: 'Award',
@@ -97,6 +103,7 @@ const userBadges = [
   }
 ]
 
+// Badges for Projects
 const projectBadges = [
   {
     key: 'featured',
@@ -112,20 +119,25 @@ const projectBadges = [
   }
 ]
 
+// Logos of Various Websites
+// These are used to decorate hyperlink.
 const hostLogos = [
   { icon: 'twitter', hostname: 'twitter.com' },
   { icon: 'github', hostname: 'github.com' },
   { icon: 'gitlab', hostname: 'gitlab.com' }
 ]
 
+// Master List of Icons
 const icons = []
-  .concat(userBadges.map(badge => badge.icon))
+  .concat(accountBadges.map(badge => badge.icon))
   .concat(projectBadges.map(badge => badge.icon))
   .concat(hostLogos.map(host => host.icon))
 
+// Function for http.createServer()
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
   const pathname = parsed.pathname
+  // Try autenticated routes.
   const { handler, params } = routes.get(pathname)
   if (handler) {
     request.parameters = params
@@ -133,12 +145,14 @@ module.exports = (request, response) => {
       handler(request, response)
     })
   }
+  // Static Files
   if (pathname === '/styles.css') {
     return serveFile(request, response, 'styles.css')
   }
   if (pathname === '/credits.txt') {
     return serveFile(request, response, 'credits.txt')
   }
+  // Icon SVGs
   for (let index = 0; index < icons.length; index++) {
     const icon = icons[index]
     if (pathname === `/${icon}.svg`) {
@@ -147,12 +161,15 @@ module.exports = (request, response) => {
     }
   }
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
+  // Testing-Only Routes
   if (pathname === '/internal-error' && !environment.production) {
     return serve500(request, response, new Error('test error'))
   }
   if (pathname === '/badges' && !environment.production) {
     return serveBadges(request, response)
   }
+  // Account and Project Routes
+  // /~{handle}
   let match = userPagePathRE.exec(pathname)
   if (match) {
     request.parameters = {
@@ -162,6 +179,7 @@ module.exports = (request, response) => {
       serveUserPage(request, response)
     })
   }
+  // /~{handle}/{project}
   match = projectPagePathRE.exec(pathname)
   if (match) {
     request.parameters = {
@@ -172,6 +190,7 @@ module.exports = (request, response) => {
       serveProjectPage(request, response)
     })
   }
+  // Default
   serve404(request, response)
 }
 
@@ -213,7 +232,7 @@ function logoutButton (request) {
 
 // Routes
 
-function serveIndex (request, response) {
+function serveHomepage (request, response) {
   if (request.method !== 'GET') return serve405(request, response)
   doNotCache(response)
   runParallel({
@@ -221,7 +240,8 @@ function serveIndex (request, response) {
       storage.showcase.read('homepage', (error, entries) => {
         if (error) return done(error)
         runParallel((entries || []).map(entry => {
-          return done => storage.project.read(`${entry.handle}/${entry.project}`, done)
+          const name = `${entry.handle}/${entry.project}`
+          return done => storage.project.read(name, done)
         }), done)
       })
     }
@@ -267,6 +287,7 @@ const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0
 
 const UUID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
 
+// Validation Rules for Passwords
 const passwords = (() => {
   const min = 8
   const max = 64
@@ -316,6 +337,7 @@ function serveSignUp (request, response) {
   function processBody (request, body, done) {
     const { handle, email, password } = body
     runSeries([
+      // Check handle availability.
       done => {
         storage.account.exists(handle, (error, exists) => {
           if (error) return done(error)
@@ -327,6 +349,8 @@ function serveSignUp (request, response) {
           done()
         })
       },
+
+      // Check if e-mail already used.
       done => {
         storage.email.read(email, (error, handle) => {
           if (error) return done(error)
@@ -338,6 +362,8 @@ function serveSignUp (request, response) {
           done(hasAccount)
         })
       },
+
+      // Write the account record.
       done => {
         passwordStorage.hash(password, (error, passwordHash) => {
           if (error) return done(error)
@@ -372,6 +398,8 @@ function serveSignUp (request, response) {
           })
         })
       },
+
+      // Create an e-mail confirmation token.
       done => {
         const token = uuid.v4()
         storage.token.write(token, {
@@ -393,6 +421,8 @@ function serveSignUp (request, response) {
           })
         })
       },
+
+      // Notify the administrator.
       done => {
         if (!process.env.ADMIN_EMAIL) return done()
         mail({
@@ -400,6 +430,7 @@ function serveSignUp (request, response) {
           subject: 'Sign Up',
           text: `Handle: ${handle}\nE-Mail: ${email}\n`
         }, error => {
+          // Eat errors.
           if (error) request.log.error(error)
           done()
         })
@@ -479,9 +510,11 @@ function randomNonce () {
   return crypto.randomBytes(32).toString('hex')
 }
 
+// Project Price Constraints
 const MINIMUM_PRICE = 3
 const MAXIMUM_PRICE = 9999
 
+// Categories for Projects
 const projectCategories = [
   'application',
   'plugin',
@@ -1453,11 +1486,13 @@ function serveConfirm (request, response) {
     return invalidToken(request, response)
   }
 
+  // Read the provided token.
   storage.token.read(token, (error, tokenData) => {
     if (error) return serve500(request, response, error)
     if (!tokenData || expired.token(tokenData)) {
       return invalidToken(request, response)
     }
+    // Use the token.
     storage.token.use(token, error => {
       if (error) return serve500(request, response, error)
       const action = tokenData.action
@@ -1650,10 +1685,15 @@ function serveDisconnect (request, response) {
         token: body.csrftoken,
         nonce: body.csrfnonce
       }, done),
+      // Deauthorize Stripe connection.
       done => stripe.oauth.deauthorize({
         client_id: environment.STRIPE_CLIENT_ID,
         stripe_user_id: account.stripe.token.stripe_user_id
       }, done)
+      // Note that this route does _not_ handle updating the
+      // account record or otherwise process deauthorization.
+      // Instead, the application waits for Stripe to
+      // post confirmation to its webhook.
     ], error => {
       if (error) {
         request.log.error(error)
@@ -1689,6 +1729,7 @@ const fontAwesomeCredit = `
 </p>
 `
 
+// /~{handle}
 function serveUserPage (request, response) {
   const { handle } = request.parameters
 
@@ -1723,7 +1764,7 @@ function serveUserPage (request, response) {
           src="${gravatar.url(data.email, { size: 200, protocol: 'https' })}">
       <h2>${data.handle}</h2>
       <ul class=badges>${
-        userBadges
+        accountBadges
           .filter(badge => data.badges[badge.key])
           .map(badge => `<li>${badgeImage(badge)}</li>`)
       }</ul>
@@ -1758,6 +1799,9 @@ function serveUserPage (request, response) {
   })
 }
 
+// Given an internal account record, which includes private
+// information like Stripe tokens, return a clone with just
+// the properties that can be published.
 function redactedAccount (account) {
   const returned = redacted(account, [
     'badges',
@@ -1773,6 +1817,7 @@ function redactedAccount (account) {
   return returned
 }
 
+// Helper Function for Redaction
 function redacted (object, publishable) {
   const clone = JSON.parse(JSON.stringify(object))
   Object.keys(clone).forEach(key => {
@@ -1790,6 +1835,7 @@ function row (label, string) {
   `
 }
 
+// Helper Function for HTML-or-JSON Routes
 function serveView (request, response, data, view) {
   const accept = request.headers.accept
   if (accept === 'application/json') {
@@ -1800,6 +1846,7 @@ function serveView (request, response, data, view) {
   response.end(view(data))
 }
 
+// Create an <a href> for a URL, adding any site logos.
 function urlLink (url) {
   const escaped = escapeHTML(url)
   const shortened = escapeHTML(url.replace(/^https?:\/\//, ''))
@@ -1822,6 +1869,8 @@ function badgeImage ({ key, display, title, icon }) {
   `
 }
 
+// Test-Only Route
+// Used to do quick visual checks of badges and site logos.
 function serveBadges (request, response) {
   response.setHeader('Content-Type', 'text/html')
   response.end(html`
@@ -1837,7 +1886,7 @@ function serveBadges (request, response) {
     <main>
       <h2>User Badges</h2>
       <ul class=badges>${
-        userBadges.map(badge => `<li>${badgeImage(badge)}</li>`)
+        accountBadges.map(badge => `<li>${badgeImage(badge)}</li>`)
       }</ul>
       <h2>Project Badges</h2>
       <ul class=badges>${
@@ -1859,6 +1908,7 @@ function serveBadges (request, response) {
   `)
 }
 
+// /~{handle}/{project}
 function serveProjectPage (request, response) {
   const { handle, project } = request.parameters
   const slug = `${handle}/${project}`
@@ -1942,6 +1992,9 @@ function badgesList (project) {
   `
 }
 
+// Given an internal project record, which might include
+// private information, return a clone with just the
+// properties that can be published.
 function redactedProject (project) {
   return redacted(project, [
     'badges',
@@ -1960,6 +2013,7 @@ function serveStripeWebhook (request, response) {
     let event
     try {
       event = stripe.webhooks.constructEvent(
+        // constructEvent wants the raw, unparsed JSON request body.
         buffer.toString(),
         request.headers['stripe-signature'],
         process.env.STRIPE_WEBHOOK_SECRET
@@ -1973,6 +2027,8 @@ function serveStripeWebhook (request, response) {
     request.log.info({ event }, 'Stripe webhook event')
 
     const type = event.type
+
+    // Handle Stripe Connect Deauthorizations
     if (type === 'account.application.deauthorized') {
       const stripeID = event.account
       request.log.info({ stripeID }, 'Stripe ID')
@@ -2071,6 +2127,7 @@ function passwordRepeatInput () {
   `
 }
 
+// Helper Function for HTML Form Endpoints
 function formRoute ({
   action,
   requireAuthentication,
