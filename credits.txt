@@ -1,0 +1,409 @@
+This site uses open software from the following npm
+package authors and contributors:
+
+@seangarner: chardet
+@spikying: chardet
+@suisho: chardet
+@wtgtybhertgeghgtwtg: chardet
+@zevanty: chardet
+AJ ONeal: uuid
+Aamir Poonawalla: ua-parser-js
+Adam Kirkton: source-map
+Admas: ua-parser-js
+Ahmad Nassri: pkg-config
+Alan Plum: http-errors
+Alberto Schiabel: @types/node
+Aleksey V Zapparov: js-yaml
+Alex Gorbatchev: crc
+Alex Indigo: asynckit
+Alex Liu: fast-safe-stringify
+Alex Sexton: stripe
+Alexander Shtuchkin: iconv-lite
+Alexander Solovyov: source-map
+Alexander T.: @types/node
+Alexandru Marasteanu: sprintf-js
+Alvin Portillo: ua-parser-js
+Alvis HT Tang: @types/node
+Andre Staltz: rxjs
+Andrea Giammarchi: circular-json, flatted, html-escaper
+Andrea Vaghi: ua-parser-js
+Andres Suarez: loose-envify, v8-compile-cache
+Andrew Eisenberg: json5
+Andrew Kassen: docopt
+Andrew Kelley: fd-slicer, pend
+Andrew Makarov: @types/node
+Andrew Monks: licensee
+Andrew Rhyne: debug, progress
+Andris Reinman: nodemailer
+André Cruz: cross-spawn
+Anna Henningsen: @types/node
+Antoine Motet: spdx-expression-parse
+Anton Zhiyanov: ua-parser-js
+Ariya Hidayat: esprima
+Arnout Kazemier: querystringify, requires-port, url-parse
+Arturo Mejia: ua-parser-js
+Arun Rama Reddy: ua-parser-js
+AryloYeung: @types/keyv
+Aseem Kishore: json5
+Ask Bjørn Hansen: stripe
+Austin Pray: ua-parser-js
+Baruch Velez: resq
+Ben Coe: cliui, nyc, require-main-filename, set-blocking, signal-exit, test-exclude, y18n, yargs-parser
+Ben Gourley: fast-safe-stringify
+Ben Lesh: rxjs, symbol-observable
+Ben Mosher: eslint-import-resolver-node, eslint-module-utils, eslint-plugin-import
+Ben Youngblood: es6-error
+BendingBender: @types/cacheable-request, @types/http-cache-semantics, @types/keyv, @types/responselike
+Benjamin Bertrand: ua-parser-js
+Benjamin Tan: lodash.isobject
+Benjamin Thomas: mime
+Benjamin Toueg: @types/node
+Benjamin Urban: ua-parser-js
+Blaine Bublitz: glob-parent, lodash.clonedeep, lodash.defaults, lodash.difference, lodash.flatten, lodash.flattendeep, lodash.isobject, lodash.isplainobject, lodash.union, lodash.zip, normalize-path
+Blake Embrey: pluralize
+Blue Oak Council Inc.: @blueoak/list
+Bogdan Chadkin: cosmiconfig
+Brad Martin: email-validator
+Brett Zamir: licensee
+Brian Donovan: lines-and-columns
+Brian J. Brennan: buffer-crc32
+Brian White: busboy, dicer, streamsearch
+Brian Woodward: is-glob
+Bruno Scheufler: @types/node
+C. Scott Ananian: spdx-expression-parse
+CESAR RAMOS: ua-parser-js
+Caolan McMahon: async
+Carl C Von Lewin: ua-parser-js
+Charlike Mike Reagent: write
+Chase Douglas: source-map
+Chigozirim C.: @types/node
+Chris Montgomery: source-map
+Chris Talkington: archiver, archiver-utils, compress-commons, crc32-stream, zip-stream
+Chris Truter: source-map
+Christian Bromann: @wdio/config, @wdio/logger, @wdio/protocols, @wdio/repl, @wdio/utils, devtools, rgb2hex, webdriver, webdriverio
+Christian Zommerfelds: spdx-correct
+Christoffer Hallas: progress
+Christoph Tavan: uuid
+Christoph Walcher: fast-safe-stringify
+Christophe Diederichs: sodium-native
+Christopher De Cairos: ua-parser-js
+Conrad Irwin: source-map
+Corey Farrell: @istanbuljs/schema, get-package-type, node-preload, process-on-spawn
+DY: color-name
+Dan Butvinik: spdx-correct, spdx-whitelisted
+Dan Flettre: deglob, standard-engine
+Daniel Espeset: source-map
+Daniel Perez: is-glob
+Danilo Sampaio: word-wrap
+Dario Vladovic: ua-parser-js
+David Björklund: etag
+David Caccavella: slice-ansi
+David Clark: cosmiconfig
+David Glasser: source-map
+David Junger: @types/node
+David Mark Clements: atomic-sleep, fast-redact, fast-safe-stringify, flatstr, pino, pino-http, quick-format-unescaped
+Davit Barbakadze: ua-parser-js
+DefinitelyTyped: @types/node
+Deividas Bakanas: @types/node
+Demis Palma: ua-parser-js
+Djordje Lukic: depcheck
+Dmitry Shirokov: chardet
+Dmitry Tyschenko: ua-parser-js
+Domenic Denicola: path-is-inside
+Dominic Tarr: json-buffer, lock, through
+Douglas Christopher Wilson: cookie, depd, destroy, ee-first, encodeurl, etag, fresh, http-errors, mime-db, mime-types, on-finished, range-parser, send, statuses, toidentifier
+Douglas Li: ua-parser-js
+Dumitru Uzun: ua-parser-js
+Duncan Beevers: source-map
+Eddy Bruël: source-map
+Eemeli Aro: yaml
+Einar Otto Stangvik: ws
+Elan Shanker: glob-parent
+Emerson Macedo: gravatar
+Emil Bay: nanoassert, secure-password, sodium-native
+Eric Schrenker: ua-parser-js
+Erik Hesselink: ua-parser-js
+Ethan Cohen: jsx-ast-utils
+Eugene Shkuropat: argparse
+Eugene Y. Q. Shen: @types/node
+Evan Wallace: source-map
+Evan You: de-indent, vue-template-compiler
+Evgeny Poberezkin: ajv, ajv-keywords, fast-deep-equal, json-schema-traverse
+ExE Boss: @types/node
+Fabian Becker: ua-parser-js
+Faisal Salman: ua-parser-js
+Fede Ramirez: word-wrap
+Felix Boehm: entities
+Felix Geisendörfer: combined-stream, delayed-stream, form-data
+Felix Gnass: source-map
+Feross Aboukhadijeh: buffer, eslint-config-standard, eslint-config-standard-jsx, fromentries, ieee754, run-parallel, run-series, safe-buffer, simple-concat, standard, typedarray-to-buffer
+Flarna: @types/node
+Florian Keller: @types/yauzl
+ForbesLindesay: is-promise, spawn-sync
+Frédéric Camblor: ua-parser-js
+Gabriel Lesperance: fast-safe-stringify
+Gajus Kuizinas: table
+Gary Court: uri-js
+Gary Katsevman: object-keys
+Gary Ye: source-map
+George Zahariev: levn, optionator, prelude-ls, type-check
+Germán M. Bravo: ua-parser-js
+Gilad Peleg: source-map
+Grigory Dmitrenko: ua-parser-js
+Gulp Team: glob-parent
+Hannes Magnusson: @types/node
+Hawken Rives: source-map
+Heather Arthur: color-convert, source-map
+Hendrik Helwich: ua-parser-js
+Hermann Ebert: ua-parser-js
+Hoàng Văn Khải: @types/node
+Hugh Kennedy: is-typedarray, source-map
+Huw: @types/node
+Ilia Baryshnikov: @types/node
+Ilya Radchenko: cli-width
+Irakli Gozalishvili: querystring
+Isaac Schlueter: nyc
+Isaac Z. Schlueter: chownr, core-util-is, dezalgo, foreground-child, fs.realpath, glob, inflight, ini, isexe, minimatch, mute-stream, normalize-package-data, npm-normalize-package-bin, once, read-package-json, read-package-tree, readdir-scoped-modules, rimraf, spawn-wrap, which, wrappy
+Ivan Nikulin: parse5
+Ivan Starkov: object-keys
+J. Ryan Stinnett: source-map
+Jack Herrington: source-map
+Jake Mc: ua-parser-js
+Jake Verbaten: for-each, xtend
+Jakob Krigovsky: licensee
+James Halliday: archy, buffer, commondir, concat-map, deep-equal, defined, fast-json-stable-stringify, json-stable-stringify-without-jsonify, minimist, mkdirp, object-inspect, resolve, resumer, semver-compare, tape, text-table, wordwrap
+James Padolsey: stripe
+James Sumners: pino, pino-std-serializers
+James Talmage: append-transform, nyc
+James Wyatt Cready: range-parser, send
+Jamie Wong: source-map
+Jamund Ferguson: eslint-plugin-standard
+Jan Bölsche: unbzip2-stream
+Jason Kwok: @types/node
+Javier Blanco: path-parse
+Jeff Cross: rxjs
+Jeff McAffer: spdx-whitelisted
+Jens Taylor: imurmurhash
+Jeremiah Senkpiel: mime-types
+Jesús Leganés Combarro: send
+Jmeas Smith: source-map
+Joe Hildebrand: word-wrap
+Joel Feenstra: esquery
+John Gozde: source-map
+John MacFarlane: commonmark
+John Tantalo: ua-parser-js
+John Yanarella: ua-parser-js
+John-David Dalton: lodash, lodash.clonedeep, lodash.defaults, lodash.difference, lodash.flatten, lodash.flattendeep, lodash.isobject, lodash.isplainobject, lodash.merge, lodash.union, lodash.zip, punycode
+Jon Buckley: ua-parser-js
+Jon Schlinkert: contains-path, is-directory, is-extglob, is-glob, is-windows, normalize-path, word-wrap, write
+Jonas Pommerening: lazystream
+Jonathan Ong: destroy, ee-first, fresh, http-errors, mime-db, mime-types, on-finished, range-parser, statuses
+Jordan Harband: array-includes, available-typed-arrays, deep-equal, define-properties, es-abstract, es-get-iterator, es-to-primitive, for-each, foreach, function-bind, has, has-symbols, is-arguments, is-bigint, is-boolean-object, is-callable, is-date-object, is-map, is-number-object, is-regex, is-set, is-string, is-symbol, is-typed-array, is-weakmap, is-weakset, object-is, object-keys, object.assign, object.entries, object.fromentries, object.getownpropertydescriptors, object.values, qs, regexp.prototype.flags, side-channel, string.prototype.trim, string.prototype.trimend, string.prototype.trimleft, string.prototype.trimright, string.prototype.trimstart, which-boxed-primitive, which-collection, which-typed-array
+Jordan Scales: progress
+Jordan Tucker: json5
+Jordi Oliveras Rovira: @types/node
+Josh Wolfe: yauzl
+Julian Gruber: array-filter, balanced-match, brace-expansion, isarray
+Junle Li: depcheck
+Junxiao Shi: @types/node
+Junyoung Clare Jang: @types/color-name
+Justin Ridgewell: @babel/helper-member-expression-to-functions
+KARASZI István: tmp
+Kat Marchán: json-parse-better-errors
+Kelvin Jin: @types/node
+Kendall Buchanan: ua-parser-js
+Kevin Gravier: external-editor
+Kevin Martensson: shebang-command
+Kevin Mårtensson: astral-regex, shebang-command, url-regex
+Khaled Al-Ansari: string.prototype.trimend, string.prototype.trimstart
+Kit Cambridge: lodash.isobject
+Klaus Meinhardt: @types/node
+Kornel Lesiński: http-cache-semantics
+Krishnan Anantheswaran: istanbul-lib-coverage, istanbul-lib-hook, istanbul-lib-instrument, istanbul-lib-report, istanbul-lib-source-maps, istanbul-reports, nyc
+Kyle E. Mitchell: correct-license-metadata, creditstxt, do-not-cache, json-parse-errback, licensee, npm-authors-contributors, simple-concat-limit, spdx-compare, spdx-correct, spdx-exceptions, spdx-expression-parse, spdx-expression-validate, spdx-osi, spdx-ranges, spdx-whitelisted, validate-npm-package-license
+Kyle Uehlein: @types/node
+Lauri Rooden: natural-compare
+Lee Treveil: ua-parser-js
+Levente Balogh: ua-parser-js
+Liam Quinn: ua-parser-js
+Lishude: @types/node
+Lithin: ua-parser-js
+Logan Smyth: @babel/helper-module-imports, @babel/helper-module-transforms, @babel/helper-simple-access, gensync
+Loris Guignard: ua-parser-js
+Lucas Tadeu Teixeira: grapheme-splitter
+Lukas Drgon: ua-parser-js
+Lukas Eipert: ua-parser-js
+Luke Childs: cacheable-request, clone-response, keyv
+Malash: ua-parser-js
+Manish Saraan: email-validator
+Manuel Stofer: foreach
+Marcin Kopacz: @types/node
+Marco Brack: progress
+Mario Casciaro: lazystream
+Mariusz Wiktorczyk: @types/node
+Mark Stacey: validate-npm-package-license
+Mark Wubben: nyc, package-hash, release-zalgo
+Martin Grenfell: js-yaml
+Martynas: ua-parser-js
+Mathias Buus: end-of-stream, fs-constants, mkdirp-classic, node-gyp-build, sodium-native, tar-fs, tar-stream
+Mathias Buus Madsen: pump
+Mathias Bynens: emoji-regex, he, jsesc, lodash, lodash.clonedeep, lodash.defaults, lodash.difference, lodash.flatten, lodash.flattendeep, lodash.isobject, lodash.isplainobject, lodash.merge, lodash.union, lodash.zip, punycode, string.prototype.repeat
+Mathieu Dutour: deps-regex
+Matt Brophy: ua-parser-js
+Matt DesLauriers: require-package-name
+Matt Esch: http-hash, xtend
+Matteo Collina: fast-safe-stringify, pino, pino-http, sonic-boom
+Matthew Davidson: node-sass-tilde-importer
+Matthew Podwysocki: rxjs
+Matthias Rolke: docopt
+Max Maurer: ua-parser-js
+Max Nanasy: json5
+Maximilian Haupt: ua-parser-js
+Meryn Stol: normalize-package-data
+Michael Ficarra: source-map
+Michael Hess: ua-parser-js
+Michael Z Goddard: source-map
+Michelle Bu: stripe
+Microsoft Corp.: tslib
+Microsoft TypeScript: @types/node
+Mihai Bazon: source-map
+Mike Atkins: delayed-stream
+Mikola Lysenko: functional-red-black-tree, uniq
+Miles Elam: source-map
+Minh Son Nguyen: @types/node
+Mohsen Azimi: @types/node
+Nathan Rajlich: agent-base, debug, https-proxy-agent, object-keys, util-deprecate
+Nicholas C. Zakas: eslint, espree
+Nicholas Young: fast-safe-stringify
+Nick Baugh: toidentifier
+Nick Fitzgerald: source-map
+Nicolas Even: @types/node
+Nicolas Lalevée: source-map
+Nicolas Voigt: @types/node
+Nik Rolls: ua-parser-js
+Nikhil Motiani: ua-parser-js
+Nikita Galkin: @types/node
+Nikita Skovoroda: safer-buffer
+Nobuo Okada: ua-parser-js
+Nolan Lawson: marky
+OJ Kwon: rxjs
+Ole Michelsen: compare-versions
+Orlin Georgiev: grapheme-splitter
+Parambir Singh: @types/node
+Paul Jacobson: argparse
+Paul Johnston: blueimp-md5
+Paul Melnikow: @types/cacheable-request
+Paul Taylor: rxjs
+Peter Dave Hello: ua-parser-js
+Petka Antonov: fast-url-parser
+Pieter Hendrickx: ua-parser-js
+Piotr Błażejewicz: @types/node
+Piper Chester: ua-parser-js
+Qix: is-arrayish
+Ramesh Nair: fast-levenshtein
+Raynos: for-each, function-bind, object-keys, xtend
+Rebecca Turner: hosted-git-info, write-file-atomic
+Rob Wu: proxy-from-env
+Robert Kieffer: mime, mime-db, uuid
+Robert Kowalski: normalize-package-data
+Robert Tod: ua-parser-js
+Romain Beauxis: buffer, ieee754
+Roman Shtylman: cookie, uuid
+Ron Korland: ua-parser-js
+Ross Noble: ua-parser-js
+Roy Riojas: file-entry-cache, flat-cache
+Ruben Bridgewater: fast-safe-stringify
+Ryan Day: walkdir
+Ryan Seddon: source-map
+Sam Roberts: debuglog
+Sam Verschueren: map-age-cleaner
+Samuel Ainsworth: @types/node
+Sandro Sonntag: ua-parser-js
+Sebastian McKenzie: @babel/code-frame, @babel/core, @babel/generator, @babel/helpers, @babel/parser, @babel/template, @babel/traverse, @babel/types, babel-code-frame
+Sebastian Silbermann: @types/node
+Sebastian Tschan: blueimp-md5
+Shane Gautreau: ua-parser-js
+Shane Thacker: ua-parser-js
+Shinnosuke Watanabe: is-resolvable, spdx-expression-parse, spdx-license-ids
+Simen Bekkhus: is-windows
+Simon Boudrias: inquirer, run-async
+Simon Eisenmann: ua-parser-js
+Simon Lang: ua-parser-js
+Simon Lydell: js-tokens, source-map
+Simon Schick: @types/node
+Sindre Sorhus: @sindresorhus/is, aggregate-error, ansi-escapes, ansi-regex, ansi-styles, array-find-index, builtin-modules, caller-callsite, caller-path, callsites, camelcase, clean-stack, cli-cursor, code-point-at, debug-log, decamelize, decompress-response, escape-string-regexp, execa, figures, find-up, find-versions, fs-access, get-stdin, get-stream, globals, has-ansi, has-flag, hasha, import-fresh, indent-string, invert-kv, ip-regex, is-builtin-module, is-docker, is-fullwidth-code-point, is-stream, is-wsl, lcid, load-json-file, locate-path, lowercase-keys, make-dir, mem, mimic-fn, mimic-response, normalize-url, npm-run-path, null-check, number-is-nan, object-assign, onetime, os-locale, os-tmpdir, p-cancelable, p-defer, p-finally, p-is-promise, p-limit, p-locate, p-map, p-try, parent-module, parse-json, path-exists, path-is-absolute, path-key, path-type, pify, pkg-conf, pkg-dir, quick-lru, read-pkg, read-pkg-up, require-uncached, resolve-from, restore-cursor, semver-regex, serialize-error, shebang-regex, slash, string-width, strip-ansi, strip-bom, strip-eof, strip-json-comments, supports-color, to-fast-properties, type-fest, wrap-ansi
+Stefan Penner: get-caller-file
+Stephen Crane: source-map
+Stephen Mathieson: tlds
+Stiekel: ua-parser-js
+Stripe: stripe
+Stuart Carnie: docopt
+Suhas Karanth: cosmiconfig
+Surasak Chaisurin: @types/node
+Sylvain Gizard: ua-parser-js
+Szymon Marczak: @szmarczak/http-timer, cacheable-lookup, defer-to-connect, http2-wrapper, resolve-alpn
+T. Jameson Little: base64-js
+TJ Holowaychuk: css-value, debug, fresh, progress, range-parser, send
+Tal Einat: spdx-correct
+Thanik Bhongbhibhat: @types/node
+The Chromium Authors: chrome-launcher, puppeteer-core
+The Linux Foundation: spdx-exceptions, spdx-ranges
+Thiago de Arruda: has
+Thomas Watson Steen: ci-info, pino
+Thomas den Hollander: @types/node
+Thorsten Lorenz: convert-source-map, deep-is, find-parent-dir
+Tim Perry: loglevel
+Tobias Koppers: source-map
+Todd Kennedy: word-wrap
+Todd Wolfson: source-map
+Toru Nagashima: eslint-plugin-es, eslint-plugin-node, eslint-utils, eslint-visitor-keys, regexpp
+Trivikram Kamat: @types/node
+Troy Goode: require-directory
+Typicode: husky
+Vadim Kurachevsky: ua-parser-js
+Vincent Voyer: uuid
+Vitaly Puzrin: js-yaml
+Vladimir Keleshev: docopt
+Vladimir Kuznetsov: buffer-crc32
+Vladimir Zapparov: js-yaml
+Waldemar Reusch: word-wrap
+Wes Todd: setprototypeof
+Wilco Bakker: @types/node
+Wolfgang Faust: word-wrap
+Xavier Damman: opencollective-postinstall
+Yannick Croissant: eslint-plugin-react
+Yargs Contributors: yargs
+Yun Young-jin: ua-parser-js
+Zach Hale: word-wrap
+Zoltan Kochan: which-pm-runs
+algenon: ua-parser-js
+azu: source-map
+boneyao: ua-parser-js
+bradleymeck: dotignore
+ddivernois: ua-parser-js
+dhoko: ua-parser-js
+dianhe: ua-parser-js
+djchie: source-map
+jackpoll: ua-parser-js
+jden: eslint-plugin-promise
+jsdnxx: find-root
+kael: ignore
+kutuluk: loglevel-plugin-prefix
+leonardo: ua-parser-js
+lukechilds: responselike
+max ogden: extract-zip
+mrmlnc: @types/parse-json
+naoh: ua-parser-js
+nexdrew: which-module
+niris: ua-parser-js
+otakuSiD: ua-parser-js
+philippsimon: ua-parser-js
+sgautrea: ua-parser-js
+shchotse: ua-parser-js
+suchipi: @babel/highlight
+szchenghuang: ua-parser-js
+tjfontaine: walkdir
+typicode: please-upgrade-node
+usrbincc: source-map
+wwwy3y3: @types/node
+刘祺: is-windows

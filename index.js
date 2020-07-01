@@ -134,6 +134,7 @@ module.exports = (request, response) => {
     })
   }
   if (pathname === '/styles.css') return serveStyles(request, response)
+  if (pathname === '/credits.txt') return serveCredits(request, response)
   for (let index = 0; index < icons.length; index++) {
     const icon = icons[index]
     if (pathname === `/${icon}.svg`) {
@@ -229,6 +230,10 @@ function serveIndex (request, response) {
 
 function serveStyles (request, response) {
   send(request, path.join(__dirname, 'styles.css')).pipe(response)
+}
+
+function serveCredits (request, response) {
+  send(request, path.join(__dirname, 'credits.txt')).pipe(response)
 }
 
 function serveIcon (request, response, icon) {

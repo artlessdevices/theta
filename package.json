@@ -25,6 +25,7 @@
     "uuid": "^8.2.0"
   },
   "devDependencies": {
+    "creditstxt": "^1.0.2",
     "depcheck": "^0.9.2",
     "husky": "^4.2.5",
     "licensee": "^8.1.0",
@@ -43,6 +44,7 @@
     }
   },
   "scripts": {
+    "credits": "cp credits.txt.header credits.txt ; creditstxt >> credits.txt",
     "precommit": "npm run lint",
     "coverage": "nyc --reporter=lcov --reporter=text npm run test",
     "deps": "depcheck",
