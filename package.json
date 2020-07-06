@@ -2,6 +2,8 @@
   "private": true,
   "dependencies": {
     "busboy": "^0.3.1",
+    "commonform-commonmark": "^6.0.0",
+    "commonform-docx": "^5.2.0",
     "commonmark": "^0.29.1",
     "cookie": "^0.4.1",
     "do-not-cache": "^1.0.1",
@@ -13,6 +15,7 @@
     "json-parse-errback": "^2.0.1",
     "lock": "^1.1.0",
     "nodemailer": "^6.4.10",
+    "ooxml-signature-pages": "^3.0.2",
     "pino": "^6.3.2",
     "pino-http": "^5.2.0",
     "run-parallel": "^1.1.9",

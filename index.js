@@ -3,6 +3,9 @@
 const Busboy = require('busboy')
 const FormData = require('form-data')
 const URLRegEx = require('url-regex')
+const cfCommonMark = require('commonform-commonmark')
+const cfDOCX = require('commonform-docx')
+const cfPrepareBlanks = require('commonform-prepare-blanks')
 const constants = require('./constants')
 const cookie = require('cookie')
 const crypto = require('crypto')
@@ -19,6 +22,8 @@ const jurisdictions = require('./jurisdictions')
 const mail = require('./mail')
 const markdown = require('./markdown')
 const notify = require('./notify')
+const ooxmlSignaturePages = require('ooxml-signature-pages')
+const outlineNumbering = require('outline-numbering')
 const parseJSON = require('json-parse-errback')
 const parseURL = require('url-parse')
 const passwordStorage = require('./password-storage')
@@ -419,7 +424,9 @@ function serveSignUp (request, response) {
                 handle,
                 email,
                 passwordHash,
+                // TODO: Require name and location on signup.
                 name: null,
+                // TODO: Change account location to jurisdiction.
                 location: null,
                 urls: [],
                 badges: {},
@@ -629,6 +636,7 @@ function serveCreate (request, response) {
         urls: [url],
         price,
         commission: process.env.MINIMUM_COMMISSION,
+        customers: [],
         badges: {},
         category,
         created
@@ -1981,6 +1989,15 @@ function serveProjectPage (request, response) {
   <body>
     ${header}
     ${nav(request)}
+    <ol id=customers>
+      ${data.customers.map(c => html`
+      <li>
+        <img
+            src="${c.gravatar}"
+            alt="${escapeHTML(c.name)}">
+      </li>
+      `)}
+    </ol>
     <main>
       <h2>${data.project}</h2>
       ${badgesList(data)}
@@ -2213,7 +2230,11 @@ function serveBuy (request, response) {
       done => {
         orderID = uuid.v4()
         storage.order.write(orderID, {
-          orderID, date, body, fulfilled: false
+          orderID,
+          date,
+          body,
+          project: projectData,
+          fulfilled: false
         }, error => {
           if (error) {
             error.statusCode = 500
@@ -2346,7 +2367,7 @@ function badgesList (project) {
 // private information, return a clone with just the
 // properties that can be published.
 function redactedProject (project) {
-  return redacted(project, [
+  const returned = redacted(project, [
     'badges',
     'category',
     'created',
@@ -2354,6 +2375,16 @@ function redactedProject (project) {
     'project',
     'urls'
   ])
+  returned.customers = project.customers.map(c => {
+    return {
+      name: c.name,
+      gravatar: gravatar.url(c.email, {
+        size: 100,
+        protocol: 'https'
+      })
+    }
+  })
+  return returned
 }
 
 function serveStripeWebhook (request, response) {
@@ -2408,10 +2439,145 @@ function serveStripeWebhook (request, response) {
         response.statusCode = 200
         response.end()
       })
+
+    // Handle payment success.
     } else if (type === 'payment_intent.succeeded') {
       const intent = event.data.object
-      request.log.info({ intent }, 'succeeded')
-      // TODO: Handle payment success.
+      const orderID = intent.metadata.orderID
+      if (!orderID) {
+        response.statusCode = 500
+        request.log.error('no orderID metadata')
+        return response.end()
+      }
+      request.log.info({ orderID }, 'order ID')
+      const date = new Date().toISOString()
+      return storage.order.read(orderID, (error, order) => {
+        if (error) {
+          request.log.error(error, 'error reading order')
+          response.statusCode = 500
+          return response.end()
+        }
+        if (!order) {
+          request.log.error(error, 'error reading order')
+          response.statusCode = 500
+          return response.end()
+        }
+
+        const handle = order.body.handle
+        const project = order.body.project
+        let account, docxBuffer
+        runSeries([
+          // Read account.
+          done => storage.account.read(handle, (error, data) => {
+            if (error) {
+              error.statusCode = 500
+              return done(error)
+            }
+            account = data
+            done()
+          }),
+
+          // Generate license.
+          done => {
+            fs.readFile(
+              path.join(__dirname, 'terms', 'license.md'),
+              'utf8',
+              (error, markup) => {
+                if (error) return done(error)
+                let parsed
+                try {
+                  parsed = cfCommonMark.parse(markup)
+                } catch (error) {
+                  request.log.error(error, 'Common Form parse')
+                }
+                // TODO: Sign licenses.
+                cfDOCX(
+                  parsed.form,
+                  cfPrepareBlanks(order.body, parsed.directions),
+                  {
+                    title: parsed.frontMatter.title,
+                    edition: parsed.frontMatter.edition,
+                    number: outlineNumbering,
+                    after: ooxmlSignaturePages([
+                      {
+                        samePage: true,
+                        conformed: account.name,
+                        information: {
+                          date,
+                          location: account.location
+                        }
+                      }
+                    ])
+                  }
+                )
+                  .generateAsync({ type: 'nodebuffer' })
+                  .catch(error => done(error))
+                  .then(buffer => {
+                    docxBuffer = buffer
+                    done()
+                  })
+              }
+            )
+          },
+
+          // E-mail customer.
+          done => {
+            let cc = null
+            if (error) {
+              // Eat errors.
+              request.log.error(error, 'account read')
+            } else if (!account) {
+              request.log.error({ handle }, 'no account found')
+            } else {
+              cc = account.email
+            }
+            notify.license({
+              to: order.body.email,
+              cc,
+              bcc: process.env.ADMIN_EMAIL,
+              handle,
+              project,
+              price: order.project.price,
+              docxBuffer
+            }, error => {
+              if (error) return done(error)
+              request.log.info('license e-mail sent')
+              done()
+            })
+          },
+
+          // Add to project transcript.
+          done => storage.project.update(
+            `${handle}/${project}`,
+            (data, done) => {
+              const entry = {
+                orderID,
+                date,
+                name: order.body.name,
+                email: order.body.email,
+                jurisdiction: order.body.jurisdiction
+              }
+              data.customers.push(entry)
+              done()
+            },
+            done
+          ),
+
+          // Update order file.
+          done => storage.order.update(orderID, {
+            fulfilled: new Date().toISOString(),
+            paymentIntent: intent
+          }, done)
+        ], error => {
+          if (error) {
+            response.statusCode = 500
+            return response.end()
+          }
+          response.end()
+        })
+      })
+
+    // Handle payment failure.
     } else if (type === 'payment_intent.payment_failed') {
       const intent = event.data.object
       request.log.info({ intent }, 'failed')

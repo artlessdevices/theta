@@ -1,6 +1,7 @@
 const createProject = require('./create-project')
 const http = require('http')
 const login = require('./login')
+const mail = require('../mail')
 const server = require('./server')
 const signup = require('./signup')
 const simpleConcat = require('simple-concat')
@@ -97,17 +98,53 @@ tape('project page', test => {
       // Accept terms.
       .then(() => browser.$('#buyForm input[name=terms]'))
       .then(terms => terms.click())
+      // Listen for customer e-mail.
+      .then(() => {
+        mail.events.on('sent', options => {
+          if (options.to !== customerEMail) return
+          test.equal(options.to, customerEMail, 'e-mail TO customer')
+          test.equal(options.cc, email, 'e-mail CC developer')
+          test.assert(
+            options.text.includes(`$${price}`),
+            'e-mail includes price'
+          )
+          test.assert(
+            options.attachments.length > 0,
+            'e-mail has attachment'
+          )
+          readyToFinish()
+        })
+      })
       // Click the buy button.
       .then(() => browser.$('#buyForm button[type=submit]'))
       .then(submit => submit.click())
       .then(() => browser.$('.message'))
+      .then(message => message.waitForExist({ timeout: 10000 }))
+      .then(() => browser.$('.message'))
       .then(message => message.getText())
       .then(text => test.assert(text.includes('Thank you', 'confirmation')))
-      .then(() => finish())
+      .then(() => readyToFinish())
       .catch(error => {
+        failed = true
         test.fail(error, 'catch')
         finish()
       })
+
+    let failed = false
+    let count = 0
+
+    function readyToFinish () {
+      if (failed) return
+      if (++count === 2) {
+        browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`)
+          .then(() => browser.$('#customers li img'))
+          .then(li => li.getAttribute('alt'))
+          .then(alt => test.equal(alt, customerName, 'Gravatar on project page'))
+          .then(finish)
+          .catch(finish)
+      }
+    }
+
     function finish () {
       test.end()
       done()

@@ -73,11 +73,46 @@ You've successfully connected your Stripe account to your ${constants.website} a
   }, callback)
 }
 
-function send ({ to, subject, markup }, callback) {
+exports.license = ({
+  to,
+  cc,
+  bcc,
+  handle,
+  project,
+  price,
+  docxBuffer
+}, callback) => {
+  send({
+    to,
+    cc,
+    bcc,
+    subject: 'Your License',
+    markup: `
+Thank you for buying a license through ${constants.website}!
+
+A copy of your license is attached.
+
+Project: <${process.env.BASE_HREF}/~${handle}/${project}>
+
+Price: $${price.toString()}
+    `.trim(),
+    attachments: [
+      {
+        filename: 'license.docx',
+        content: docxBuffer
+      }
+    ]
+  }, callback)
+}
+
+function send ({ to, cc, bcc, subject, markup, attachments }, callback) {
   mail({
     to,
+    cc,
+    bcc,
     subject,
     text: markup,
-    html: markdown(markup)
+    html: markdown(markup),
+    attachments
   }, callback)
 }
