@@ -1816,7 +1816,7 @@ function serveUserPage (request, response) {
     <main>
       <img
           class=avatar
-          src="${gravatar.url(data.email, { size: 200, protocol: 'https' })}">
+          src="${gravatar.url(data.email, { size: 200, rating: 'pg', protocol: 'https' })}">
       <h2>${data.handle}</h2>
       <ul class=badges>${
         accountBadges
@@ -2380,6 +2380,7 @@ function redactedProject (project) {
       name: c.name,
       gravatar: gravatar.url(c.email, {
         size: 100,
+        rating: 'pg',
         protocol: 'https'
       })
     }
