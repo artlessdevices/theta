@@ -47,7 +47,7 @@ module.exports = (callback, port) => {
       const events = [
         'account.application.deauthorized',
         'payment_intent.succeeded',
-        'payment_intent.failed'
+        'payment_intent.payment_failed'
       ]
       stripeCLI = spawn(
         'stripe',
