@@ -2376,6 +2376,11 @@ function serveStripeWebhook (request, response) {
 
     request.log.info({ event }, 'Stripe webhook event')
 
+    // Ignore test-mode events in production.
+    if (environment.production && !event.testmode) {
+      return response.end()
+    }
+
     const type = event.type
 
     // Handle Stripe Connect Deauthorizations
