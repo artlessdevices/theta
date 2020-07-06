@@ -2270,6 +2270,18 @@ function serveBuy (request, response) {
         request.log.info({ options }, 'payment intent options')
         stripe.paymentIntents.create(options, (error, data) => {
           if (error) {
+            const code = error.code
+            if (
+              code === 'card_declined' ||
+              code === 'expired_card' ||
+              code === 'incorrect_cvc' ||
+              code === 'processing_error' ||
+              code === 'incorrect_number'
+            ) {
+              const userError = new Error(error.message)
+              userError.statusCode = 400
+              return done(userError)
+            }
             error.statusCode = 500
             return done(error)
           }
