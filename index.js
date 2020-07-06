@@ -628,7 +628,7 @@ function serveCreate (request, response) {
         handle,
         urls: [url],
         price,
-        commission: environment.MINIMUM_COMMISSION,
+        commission: process.env.MINIMUM_COMMISSION,
         badges: {},
         category,
         created
@@ -2227,15 +2227,19 @@ function serveBuy (request, response) {
       // Create charge directly on the dev's Stripe account.
       // https://stripe.com/docs/connect/direct-charges
       done => {
+        const amount = projectData.price * 100
         const options = {
+          amount,
           payment_method_types: ['card'],
-          amount: projectData.price * 100,
           currency: 'usd',
           metadata: { orderID }
         }
         // Stripe will not accept application_fee_amount=0.
-        const fee = Math.floor(projectData.price * (projectData.commission / 100))
+        const fee = Math.floor(
+          amount * (projectData.commission / 100)
+        )
         if (fee > 0) options.application_fee_amount = fee
+        request.log.info({ options }, 'payment intent options')
         stripe.paymentIntents.create(options, {
           stripeAccount: accountData.stripe.token.stripe_user_id,
           idempotencyKey: orderID
