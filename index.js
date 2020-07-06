@@ -2169,7 +2169,7 @@ function serveBuy (request, response) {
   })(request, response)
 
   function processBody (request, body, done) {
-    const { handle, project, name, email, jurisdiction } = body
+    const { handle, project, name, email, jurisdiction, token } = body
     let accountData, projectData
     let orderID, paymentIntent
     const date = new Date().toISOString()
@@ -2224,15 +2224,22 @@ function serveBuy (request, response) {
         })
       },
 
-      // Create charge directly on the dev's Stripe account.
-      // https://stripe.com/docs/connect/direct-charges
+      // https://stripe.com/docs/connect/destination-charges
       done => {
         const amount = projectData.price * 100
+        const stripeID = accountData.stripe.token.stripe_user_id
         const options = {
           amount,
-          payment_method_types: ['card'],
+          confirm: true,
+          receipt_email: email,
+          payment_method_data: {
+            type: 'card',
+            card: { token }
+          },
           currency: 'usd',
-          metadata: { orderID }
+          metadata: { orderID },
+          on_behalf_of: stripeID,
+          transfer_data: { destination: stripeID }
         }
         // Stripe will not accept application_fee_amount=0.
         const fee = Math.floor(
@@ -2240,16 +2247,13 @@ function serveBuy (request, response) {
         )
         if (fee > 0) options.application_fee_amount = fee
         request.log.info({ options }, 'payment intent options')
-        stripe.paymentIntents.create(options, {
-          stripeAccount: accountData.stripe.token.stripe_user_id,
-          idempotencyKey: orderID
-        }, (error, data) => {
+        stripe.paymentIntents.create(options, (error, data) => {
           if (error) {
             error.statusCode = 500
             return done(error)
           }
           paymentIntent = data
-          request.log.info({ id: paymentIntent.id }, 'payment intent')
+          request.log.info({ paymentIntent }, 'payment intent')
           done()
         })
       },
