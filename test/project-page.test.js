@@ -13,7 +13,7 @@ const password = 'ana password'
 const email = 'ana@example.com'
 const project = 'apple'
 const url = 'http://example.com'
-const price = 11
+const price = 100
 const category = 'library'
 
 tape('project page', test => {

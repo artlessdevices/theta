@@ -35,7 +35,7 @@ module.exports = (callback, port) => {
       const port = this.address().port
       process.env.BASE_HREF = 'http://localhost:' + port
       process.env.ADMIN_EMAIL = 'admin@example.com'
-      process.env.MINIMUM_COMMISSION = '1'
+      process.env.MINIMUM_COMMISSION = '5'
       const environment = require('../environment')()
       if (environment.missing.length !== 0) {
         cleanup()
