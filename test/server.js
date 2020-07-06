@@ -59,6 +59,9 @@ module.exports = (callback, port) => {
           events.join(',')
         ]
       )
+      stripeCLI.stdout.pipe(
+        fs.createWriteStream('stripe-cli.log')
+      )
       stripeCLI.stdout.once('data', () => {
         callback(port, cleanup)
       })
