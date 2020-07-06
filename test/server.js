@@ -44,19 +44,12 @@ module.exports = (callback, port) => {
         })
         assert(false)
       }
-      const events = [
-        'account.application.deauthorized',
-        'payment_intent.succeeded',
-        'payment_intent.payment_failed'
-      ]
       stripeCLI = spawn(
         'stripe',
         [
           'listen',
           '--forward-to',
-          `localhost:${port}/stripe-webhook`,
-          '--events',
-          events.join(',')
+          `localhost:${port}/stripe-webhook`
         ]
       )
       stripeCLI.stdout.pipe(
