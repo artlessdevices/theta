@@ -39,6 +39,20 @@ simple({
 })
 
 simple({
+  path: '/terms/service',
+  status: 200,
+  mime: 'text/html',
+  content: 'Terms of Service'
+})
+
+simple({
+  path: '/buy.js',
+  status: 200,
+  mime: 'application/javascript; charset=UTF-8',
+  content: 'STRIPE_PUBLISHABLE_KEY'
+})
+
+simple({
   method: 'POST',
   path: '/',
   status: 405,

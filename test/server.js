@@ -35,6 +35,7 @@ module.exports = (callback, port) => {
       const port = this.address().port
       process.env.BASE_HREF = 'http://localhost:' + port
       process.env.ADMIN_EMAIL = 'admin@example.com'
+      process.env.MINIMUM_COMMISSION = '1'
       const environment = require('../environment')()
       if (environment.missing.length !== 0) {
         cleanup()
@@ -44,7 +45,9 @@ module.exports = (callback, port) => {
         assert(false)
       }
       const events = [
-        'account.application.deauthorized'
+        'account.application.deauthorized',
+        'payment_intent.succeeded',
+        'payment_intent.failed'
       ]
       stripeCLI = spawn(
         'stripe',

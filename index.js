@@ -10,10 +10,14 @@ const csrf = require('./csrf')
 const doNotCache = require('do-not-cache')
 const escapeHTML = require('escape-html')
 const expired = require('./expired')
+const fs = require('fs')
 const gravatar = require('gravatar')
 const html = require('./html')
 const https = require('https')
+const iso31662 = require('iso-3166-2')
+const jurisdictions = require('./jurisdictions')
 const mail = require('./mail')
+const markdown = require('./markdown')
 const notify = require('./notify')
 const parseJSON = require('json-parse-errback')
 const parseURL = require('url-parse')
@@ -46,6 +50,7 @@ routes.set('/reset', serveReset) // reset passwords
 routes.set('/confirm', serveConfirm) // confirm links in e-mails
 routes.set('/connected', serveConnected) // confirm Stripe connected
 routes.set('/disconnect', serveDisconnect) // disconnect Stripe
+routes.set('/buy', serveBuy) // buy licenses
 
 // Validation Rules for Account Names
 const handles = (() => {
@@ -133,6 +138,12 @@ const icons = []
   .concat(projectBadges.map(badge => badge.icon))
   .concat(hostLogos.map(host => host.icon))
 
+const staticFiles = [
+  'styles.css',
+  'credits.txt',
+  'buy.js'
+]
+
 // Function for http.createServer()
 module.exports = (request, response) => {
   const parsed = request.parsed = parseURL(request.url, true)
@@ -145,12 +156,14 @@ module.exports = (request, response) => {
       handler(request, response)
     })
   }
-  // Static Files
-  if (pathname === '/styles.css') {
-    return serveFile(request, response, 'styles.css')
+  // Terms
+  if (pathname === '/terms/service') {
+    return serveTerms(request, response, 'service')
   }
-  if (pathname === '/credits.txt') {
-    return serveFile(request, response, 'credits.txt')
+  // Static Files
+  const basename = path.basename(pathname)
+  if (staticFiles.includes(basename)) {
+    return serveFile(request, response, basename)
   }
   // Icon SVGs
   for (let index = 0; index < icons.length; index++) {
@@ -280,6 +293,39 @@ function serveHomepage (request, response) {
 
 function serveFile (request, response, file) {
   send(request, path.join(__dirname, file)).pipe(response)
+}
+
+const termsTitles = {
+  service: 'Terms of Service'
+}
+
+function serveTerms (request, response, slug) {
+  const title = termsTitles[slug]
+  fs.readFile(
+    path.join(__dirname, 'terms', `${slug}.md`),
+    'utf8',
+    (error, markup) => {
+      if (error) return serve500(request, response, error)
+      response.setHeader('Content-Type', 'text/html')
+      response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${escapeHTML(title)}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main role=main>
+      <h1>${escapeHTML(title)}</h1>
+      ${markdown(markup)}
+    </main>
+  </body>
+</html>
+      `)
+    }
+  )
 }
 
 // https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
@@ -582,6 +628,7 @@ function serveCreate (request, response) {
         handle,
         urls: [url],
         price,
+        commission: environment.MINIMUM_COMMISSION,
         badges: {},
         category,
         created
@@ -1963,6 +2010,18 @@ function serveProjectPage (request, response) {
           <td><ul>${data.urls.map(url => `<li>${urlLink(url)}</li>`)}</ul></td>
         </tr>
       </table>
+      ${
+        data.account.stripe.connected
+          ? buyForm({
+            csrf: csrf.inputs({
+              action: '/buy',
+              sessionID: request.session.id
+            }),
+            handle: { value: data.account.handle },
+            project: { value: data.project }
+          })
+          : '<p>Licenses are not available for sale at this time.</p>'
+      }
     </main>
   </body>
 </html>
@@ -1979,6 +2038,289 @@ function serveProjectPage (request, response) {
       }
       done(null, data)
     })
+  }
+}
+
+function buyForm (data) {
+  ['account', 'project', 'name', 'email', 'jurisdiction', 'terms']
+    .forEach(key => {
+      if (!data[key]) data[key] = {}
+    })
+  return html`
+<form id=buyForm action=/buy method=post>
+  ${data.error}
+  ${data.csrf}
+  <input
+      type=hidden
+      name=handle
+      value="${escapeHTML(data.handle.value || '')}">
+  <input
+      type=hidden
+      name=project
+      value="${escapeHTML(data.project.value || '')}">
+  <fieldset>
+    <legend>About You</legend>
+    <label>
+      Your Legal Name
+      <input
+        type=text
+        name=name
+        value="${escapeHTML(data.name.value || '')}"
+        required>
+    </label>
+    ${data.name.error}
+    <label>
+      Jurisdiction
+      <input
+        name=jurisdiction
+        value="${escapeHTML(data.jurisdiction.value || '')}"
+        type=text
+        list=jurisdictions
+        autocomplete=off
+        required>
+    </label>
+    <datalist id=jurisdictions>
+      ${jurisdictionOptions()}
+    </datalist>
+    ${data.jurisdiction.error}
+    <label>
+      E-Mail
+      <input
+        type=email
+        name=email
+        value="${escapeHTML(data.email.value || '')}"
+        required>
+    </label>
+    ${data.email.error}
+  </fieldset>
+  <fieldset id=paymentFieldSet>
+    <legend>Payment</legend>
+    <div id=card></div>
+    <div id=card-errors></div>
+    <noscript>You must enable JavaScript in your browser to process payment.</noscript>
+  </fieldset>
+  <fieldset>
+    <legend>Terms</legend>
+    <label>
+      <input type=checkbox name=terms value=accepted required>
+      Check this box to accept the
+      <a href=/terms/service target=_blank>terms of service</a>.
+    </label>
+    ${data.terms.error}
+  </fieldset>
+  <button id=buySubmitButton type=submit>Buy</button>
+</form>
+<script>STRIPE_PUBLISHABLE_KEY = ${JSON.stringify(environment.STRIPE_PUBLISHABLE_KEY)}</script>
+<script src=https://js.stripe.com/v3/></script>
+<script src=/buy.js></script>
+  `
+}
+
+function jurisdictionOptions () {
+  return jurisdictions.map(function (code) {
+    var parsed = iso31662.subdivision(code)
+    return html`
+<option value="${escapeHTML(code)}">
+  ${escapeHTML(parsed.countryName)}:
+  ${escapeHTML(parsed.name)}
+</option>
+    `
+  })
+}
+
+function serveBuy (request, response) {
+  const title = 'Buy a License'
+  const action = '/buy'
+
+  const fields = {
+    handle: {
+      filter: e => e.toLowerCase().trim(),
+      validate: handles.valid
+    },
+    project: {
+      filter: e => e.toLowerCase().trim(),
+      validate: projects.valid
+    },
+    name: {
+      filter: e => e.trim(),
+      validate: s => s.length > 3
+    },
+    email: {
+      filter: e => e.toLowerCase().trim(),
+      validate: e => EMAIL_RE.test(e)
+    },
+    jurisdiction: {
+      validate: code => jurisdictions.includes(code)
+    },
+    terms: {
+      validate: e => e === 'accepted'
+    },
+    token: {
+      validate: e => typeof e === 'string' && e.startsWith('tok_')
+    }
+  }
+
+  formRoute({
+    action,
+    form,
+    fields,
+    processBody,
+    onSuccess
+  })(request, response)
+
+  function processBody (request, body, done) {
+    const { handle, project, name, email, jurisdiction } = body
+    let accountData, projectData
+    let orderID, paymentIntent
+    const date = new Date().toISOString()
+    runSeries([
+      // Read account.
+      done => {
+        storage.account.read(handle, (error, data) => {
+          if (error) return done(error)
+          if (!data) {
+            const error = new Error('no such account')
+            error.statusCode = 400
+            return done(error)
+          }
+          if (!data.stripe.connected) {
+            const error = new Error('account not set up to sell')
+            error.statusCode = 400
+            return done(error)
+          }
+          accountData = data
+          done()
+        })
+      },
+
+      // Read project.
+      done => {
+        const name = `${handle}/${project}`
+        storage.project.read(name, (error, data) => {
+          if (error) return done(error)
+          if (!data) {
+            const error = new Error('no such project')
+            error.fieldName = 'project'
+            error.statusCode = 400
+            return done(error)
+          }
+          projectData = data
+          done()
+        })
+      },
+
+      // Create an order.
+      done => {
+        orderID = uuid.v4()
+        storage.order.write(orderID, {
+          orderID, date, body, fulfilled: false
+        }, error => {
+          if (error) {
+            error.statusCode = 500
+            return done(error)
+          }
+          request.log.info({ orderID }, 'orderID')
+          done()
+        })
+      },
+
+      // Create charge directly on the dev's Stripe account.
+      // https://stripe.com/docs/connect/direct-charges
+      done => {
+        const options = {
+          payment_method_types: ['card'],
+          amount: projectData.price * 100,
+          currency: 'usd',
+          metadata: { orderID }
+        }
+        // Stripe will not accept application_fee_amount=0.
+        const fee = Math.floor(projectData.price * (projectData.commission / 100))
+        if (fee > 0) options.application_fee_amount = fee
+        stripe.paymentIntents.create(options, {
+          stripeAccount: accountData.stripe.token.stripe_user_id,
+          idempotencyKey: orderID
+        }, (error, data) => {
+          if (error) {
+            error.statusCode = 500
+            return done(error)
+          }
+          paymentIntent = data
+          request.log.info({ id: paymentIntent.id }, 'payment intent')
+          done()
+        })
+      },
+
+      // Update order with Payment Intent ID.
+      done => storage.order.update(orderID, {
+        paymentIntentID: paymentIntent.id
+      }, done),
+
+      // Notify the administrator.
+      done => {
+        if (!process.env.ADMIN_EMAIL) return done()
+        mail({
+          to: process.env.ADMIN_EMAIL,
+          subject: 'Buy Initiated',
+          text: `
+Handle: ${handle}
+Project: ${project}
+
+Name: ${name}
+Jurisdiction: ${jurisdiction}
+E-Mail: ${email}
+
+Order: ${orderID}
+Payment Intent: ${paymentIntent.id}
+`
+        }, error => {
+          // Eat errors.
+          if (error) request.log.error(error)
+          done()
+        })
+      }
+    ], done)
+  }
+
+  function onSuccess (request, response) {
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${title}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main role=main>
+      <h2>Success</h2>
+      <p class=message>Thank you for buying a license! As soon as your payment clears, you will receive an e-mail with your license and receipt.</p>
+    </main>
+  </body>
+</html>
+  `)
+  }
+
+  function form (request, data) {
+    response.setHeader('Content-Type', 'text/html')
+    response.end(html`
+<!doctype html>
+<html lang=en-US>
+  <head>
+    ${meta}
+    <title>${title}</title>
+  </head>
+  <body>
+    ${header}
+    ${nav(request)}
+    <main role=main>
+      <h2>${title}</h2>
+      ${buyForm(data)}
+    </main>
+  </body>
+</html>
+    `)
   }
 }
 
@@ -2053,6 +2395,14 @@ function serveStripeWebhook (request, response) {
         response.statusCode = 200
         response.end()
       })
+    } else if (type === 'payment_intent.succeeded') {
+      const intent = event.data.object
+      request.log.info({ intent }, 'succeeded')
+      // TODO: Handle payment success.
+    } else if (type === 'payment_intent.payment_failed') {
+      const intent = event.data.object
+      request.log.info({ intent }, 'failed')
+      // TODO: Handle payment failure.
     }
 
     response.statusCode = 400

@@ -5,6 +5,7 @@ const server = require('./server')
 const signup = require('./signup')
 const simpleConcat = require('simple-concat')
 const tape = require('tape')
+const timeout = require('./timeout')
 const webdriver = require('./webdriver')
 
 const handle = 'ana'
@@ -16,8 +17,11 @@ const price = 11
 const category = 'library'
 
 tape('project page', test => {
+  const customerName = 'Jon Doe'
+  const customerEMail = 'jon@exaple.com'
+  const customerJurisdiction = 'US-CA'
   server((port, done) => {
-    let browser
+    let browser, cardNumber
     webdriver()
       .then(loaded => { browser = loaded })
       .then(() => {
@@ -29,6 +33,18 @@ tape('project page', test => {
         }))
       })
       .then(() => login({ browser, port, handle, password }))
+      // Connect.
+      .then(() => browser.$('#account'))
+      .then(account => account.click())
+      .then(() => browser.$('#connect'))
+      .then(connect => connect.click())
+      .then(() => browser.$('=Skip this account form'))
+      .then((element) => element.click())
+      // Confirm connected.
+      .then(() => browser.$('#disconnect'))
+      .then(disconnect => disconnect.getText())
+      .then(text => test.equal(text, 'Disconnect Stripe Account', 'connected'))
+      // Create project.
       .then(() => createProject({ browser, port, project, url, price, category }))
       .then(() => browser.navigateTo(`http://localhost:${port}/~${handle}/${project}`))
       .then(() => browser.$('h2'))
@@ -43,6 +59,50 @@ tape('project page', test => {
       .then(() => browser.$('#category'))
       .then(price => price.getText())
       .then(text => test.equal(text, category, 'category'))
+      // Buy a license.
+      // Fill in customer details.
+      .then(() => browser.$('#buyForm input[name=name]'))
+      .then(name => name.addValue(customerName))
+      .then(() => browser.$('#buyForm input[name=email]'))
+      .then(email => email.addValue(customerEMail))
+      .then(() => browser.$('#buyForm input[name=jurisdiction]'))
+      .then(email => email.addValue(customerJurisdiction))
+      // Enter credit card information.
+      .then(() => browser.$('iframe'))
+      .then((frame) => browser.switchToFrame(frame))
+      .then(() => browser.$('input[name="cardnumber"]'))
+      .then((input) => { cardNumber = input })
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => timeout(200))
+      .then(() => cardNumber.addValue('42'))
+      .then(() => browser.$('input[name="exp-date"]'))
+      .then((input) => input.setValue('10 / 31'))
+      .then(() => browser.$('input[name="cvc"]'))
+      .then((input) => input.setValue('123'))
+      .then(() => browser.$('input[name="postal"]'))
+      .then((input) => input.setValue('12345'))
+      .then(() => browser.switchToParentFrame())
+      // Accept terms.
+      .then(() => browser.$('#buyForm input[name=terms]'))
+      .then(terms => terms.click())
+      // Click the buy button.
+      .then(() => browser.$('#buyForm button[type=submit]'))
+      .then(submit => submit.click())
+      .then(() => browser.$('.message'))
+      .then(message => message.getText())
+      .then(text => test.assert(text.includes('Thank you', 'confirmation')))
       .then(() => finish())
       .catch(error => {
         test.fail(error, 'catch')
@@ -52,7 +112,7 @@ tape('project page', test => {
       test.end()
       done()
     }
-  })
+  }, 8080)
 })
 
 tape('project JSON', test => {

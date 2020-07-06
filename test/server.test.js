@@ -18,6 +18,7 @@ tape('server', test => {
             NODE_ENV: 'test',
             BASE_HREF: 'http://localhost:' + serverPort + '/',
             CSRF_KEY: csrf.randomKey(),
+            MINIMUM_COMMISSION: 1,
             DIRECTORY: directory,
             STRIPE_CLIENT_ID: process.env.STRIPE_CLIENT_ID,
             STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,

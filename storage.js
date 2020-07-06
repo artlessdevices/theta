@@ -6,6 +6,7 @@ const path = require('path')
 
 module.exports = {
   account: simpleFiles('accounts'),
+  order: simpleFiles('orders'),
   project: simpleFiles('projects'),
   email: simpleFiles('emails'),
   token: simpleFiles('tokens'),
