@@ -402,7 +402,7 @@ function serveSignUp (request, response) {
   })(request, response)
 
   function processBody (request, body, done) {
-    const { handle, email, password } = body
+    const { handle, email, password, name, location } = body
     runSeries([
       // Check if e-mail already used.
       done => {
@@ -427,8 +427,8 @@ function serveSignUp (request, response) {
                 handle,
                 email,
                 passwordHash,
-                name: null,
-                location: null,
+                name,
+                location,
                 urls: [],
                 badges: {},
                 projects: [],
