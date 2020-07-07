@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var button = document.getElementById('buySubmitButton')
     button.setAttribute('disabled', true)
     button.value = 'Buying...'
-    stripe.createToken(card)
+    stripe.createToken(card, {
+      name: document.getElementsByName('name')[0].value
+    })
       .then(function (result) {
         if (result.error) {
           var errorElement = document.getElementById('card-errors')
