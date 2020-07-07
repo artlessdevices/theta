@@ -4,6 +4,7 @@ const csrf = require('../csrf')
 const fs = require('fs')
 const handle = require('../')
 const http = require('http')
+const mail = require('../mail')
 const os = require('os')
 const path = require('path')
 const pino = require('pino')
@@ -66,6 +67,7 @@ module.exports = (callback, port) => {
   })
 
   function cleanup () {
+    mail.events.removeAllListeners()
     if (webServer) webServer.close()
     if (directory) rimraf(directory, () => {})
     if (stripeCLI) stripeCLI.kill()

@@ -30,7 +30,9 @@ const parseURL = require('url-parse')
 const passwordStorage = require('./password-storage')
 const path = require('path')
 const querystring = require('querystring')
+const runAuto = require('run-auto')
 const runParallel = require('run-parallel')
+const runParallelLimit = require('run-parallel-limit')
 const runSeries = require('run-series')
 const send = require('send')
 const signatures = require('./signatures')
@@ -445,7 +447,7 @@ function serveSignUp (request, response) {
               storage.email.update(email, data, (error, updated) => {
                 if (error) return done(error)
                 if (!updated) {
-                  data.orders = []
+                  data.orderIDs = []
                   return storage.email.write(email, data, done)
                 }
                 done()
@@ -1822,7 +1824,7 @@ const fontAwesomeCredit = `
 function serveUserPage (request, response) {
   const { handle } = request.parameters
 
-  runParallel({
+  runAuto({
     account: done => storage.account.read(handle, (error, account) => {
       if (error) return done(error)
       if (!account) {
@@ -1831,12 +1833,26 @@ function serveUserPage (request, response) {
         return done(error)
       }
       done(null, redactedAccount(account))
-    })
+    }),
+    email: ['account', (results, done) => {
+      storage.email.read(results.account.email, done)
+    }],
+    orders: ['email', (results, done) => {
+      runParallelLimit(results.email.orderIDs.map(
+        orderID => done => storage.order.read(orderID, done)
+      ), 4, done)
+    }]
   }, (error, data) => {
     if (error) {
       if (error.statusCode === 404) return serve404(request, response)
       return serve500(request, response, error)
     }
+    data.account.orders = data.orders.map(order => {
+      return {
+        handle: order.handle,
+        project: order.project
+      }
+    })
     serveView(request, response, data.account, data => html`
 <!doctype html>
 <html lang=en-US>
@@ -1878,6 +1894,14 @@ function serveUserPage (request, response) {
         </li>
         `)}
       </ul>
+      <h3>Licenses</h3>
+      <ul class=licenses>${
+        data.orders.map(order => html`
+        <li>
+          <a href=/~${order.handle}/${order.project}>${order.handle}/${order.project}</a>
+        </li>
+        `)
+      }</ul>
     </main>
     <footer role=contentinfo>
       ${fontAwesomeCredit}
@@ -2653,7 +2677,7 @@ function serveStripeWebhook (request, response) {
           done => storage.email.update(
             order.email,
             (data, done) => {
-              data.orders.push(orderID)
+              data.orderIDs.push(orderID)
               done()
             },
             done
