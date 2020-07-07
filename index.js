@@ -23,7 +23,6 @@ const locations = require('./locations')
 const mail = require('./mail')
 const markdown = require('./markdown')
 const notify = require('./notify')
-const ooxmlSignaturePages = require('ooxml-signature-pages')
 const outlineNumbering = require('outline-numbering')
 const parseJSON = require('json-parse-errback')
 const parseURL = require('url-parse')
@@ -2570,23 +2569,30 @@ function serveStripeWebhook (request, response) {
                 } catch (error) {
                   request.log.error(error, 'Common Form parse')
                 }
+                const blanks = {
+                  'developer name': account.name,
+                  'developer location': account.location,
+                  'developer e-mail': account.email,
+                  'agent name': 'Artless Devices LLC',
+                  'agent location': 'US-CA',
+                  'agent website': 'https://artlessdevices.com',
+                  'user name': order.name,
+                  'user location': order.location,
+                  'user e-mail': order.email,
+                  'software URL': order.projectData.urls[0],
+                  'software category': order.projectData.category,
+                  price: order.projectData.price.toString(),
+                  date,
+                  term: 'forever'
+                }
+                console.error(blanks)
                 cfDOCX(
                   parsed.form,
-                  cfPrepareBlanks(order, parsed.directions),
+                  cfPrepareBlanks(blanks, parsed.directions),
                   {
                     title: parsed.frontMatter.title,
                     edition: parsed.frontMatter.edition,
-                    number: outlineNumbering,
-                    after: ooxmlSignaturePages([
-                      {
-                        samePage: true,
-                        conformed: account.name,
-                        information: {
-                          date,
-                          location: account.location
-                        }
-                      }
-                    ])
+                    numbering: outlineNumbering
                   }
                 )
                   .generateAsync({ type: 'nodebuffer' })
