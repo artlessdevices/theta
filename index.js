@@ -32,6 +32,7 @@ const querystring = require('querystring')
 const runParallel = require('run-parallel')
 const runSeries = require('run-series')
 const send = require('send')
+const signatures = require('./signatures')
 const simpleConcatLimit = require('simple-concat-limit')
 const storage = require('./storage')
 const uuid = require('uuid')
@@ -177,6 +178,10 @@ module.exports = (request, response) => {
       const file = path.join('icons', `${icon}.svg`)
       return serveFile(request, response, file)
     }
+  }
+  if (pathname === '/public-key') {
+    response.setHeader('Content-Type', 'application/octet-stream')
+    return response.end(process.env.PUBLIC_KEY)
   }
   if (pathname === '/stripe-webhook') return serveStripeWebhook(request, response)
   // Testing-Only Routes
@@ -2478,7 +2483,7 @@ function serveStripeWebhook (request, response) {
 
         const handle = order.body.handle
         const project = order.body.project
-        let account, docxBuffer
+        let account, docxBuffer, signature
         runSeries([
           // Read account.
           done => storage.account.read(handle, (error, data) => {
@@ -2533,6 +2538,23 @@ function serveStripeWebhook (request, response) {
             )
           },
 
+          // Generate and record signature.
+          done => {
+            signature = signatures.sign(
+              docxBuffer,
+              process.env.PUBLIC_KEY,
+              process.env.PRIVATE_KEY
+            )
+            request.log.info({ signature }, 'siganture')
+            storage.signature.record({
+              signature, date, orderID
+            }, error => {
+              if (error) return done(error)
+              request.log.info('recorded')
+              done()
+            })
+          },
+
           // E-mail customer.
           done => {
             let cc = null
@@ -2550,7 +2572,9 @@ function serveStripeWebhook (request, response) {
               bcc: process.env.ADMIN_EMAIL,
               handle,
               project,
+              orderID,
               price: order.project.price,
+              signature,
               docxBuffer
             }, error => {
               if (error) return done(error)

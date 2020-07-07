@@ -3,6 +3,7 @@ const csrf = require('../csrf')
 const fs = require('fs')
 const rimraf = require('rimraf')
 const runSeries = require('run-series')
+const signatures = require('../signatures')
 const spawn = require('child_process').spawn
 const tape = require('tape')
 
@@ -12,12 +13,15 @@ tape('server', test => {
     const serverPort = 8080
     runSeries([
       done => {
+        const keys = signatures.keys()
         server = spawn('node', ['server.js'], {
           env: {
             PORT: serverPort,
             NODE_ENV: 'test',
             BASE_HREF: 'http://localhost:' + serverPort + '/',
             CSRF_KEY: csrf.randomKey(),
+            PUBLIC_KEY: keys.publicKey,
+            PRIVATE_KEY: keys.privateKey,
             MINIMUM_COMMISSION: 5,
             DIRECTORY: directory,
             STRIPE_CLIENT_ID: process.env.STRIPE_CLIENT_ID,

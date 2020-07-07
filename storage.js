@@ -3,6 +3,9 @@
 const fs = require('fs')
 const lock = require('lock').Lock()
 const path = require('path')
+const pump = require('pump')
+const split2 = require('split2')
+const through2 = require('through2')
 
 module.exports = {
   account: simpleFiles('accounts'),
@@ -13,6 +16,31 @@ module.exports = {
   session: simpleFiles('sessions'),
   showcase: simpleFiles('showcases'),
   stripeID: simpleFiles('stripeIDs'),
+  signature: {
+    record: ({ date, signature, orderID }, callback) => {
+      lock('signatures', unlock => {
+        callback = unlock(callback)
+        fs.appendFile(
+          path.join(process.env.DIRECTORY, 'sigantures.csv'),
+          [date, signature, orderID].join(','),
+          callback
+        )
+      })
+    },
+    createReadStream: () => {
+      return pump(
+        fs.createReadStream(
+          path.join(process.env.DIRECTORY, 'sigantures.csv'),
+          'utf8'
+        ),
+        split2(),
+        through2.obj((chunk, _, done) => {
+          const [date, signature, orderID] = chunk.split(',')
+          done(null, { date, signature, orderID })
+        })
+      )
+    }
+  },
   lock
 }
 

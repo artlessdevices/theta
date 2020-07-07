@@ -2,6 +2,14 @@
 
 const variables = [
   {
+    name: 'PUBLIC_KEY',
+    required: true
+  },
+  {
+    name: 'PRIVATE_KEY',
+    required: true
+  },
+  {
     name: 'BASE_HREF',
     required: true
   },

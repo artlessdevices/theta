@@ -112,6 +112,14 @@ tape('project page', test => {
             options.attachments.length > 0,
             'e-mail has attachment'
           )
+          test.assert(
+            /Order ID: `[a-f0-9-]+`/.test(options.text),
+            'e-mail has order ID'
+          )
+          test.assert(
+            /Signature: `[a-f0-9]+`/.test(options.text),
+            'e-mail has signature'
+          )
           readyToFinish()
         })
       })

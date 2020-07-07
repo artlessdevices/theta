@@ -9,6 +9,7 @@ const path = require('path')
 const pino = require('pino')
 const pinoHTTP = require('pino-http')
 const rimraf = require('rimraf')
+const signatures = require('../signatures')
 const spawn = require('child_process').spawn
 
 module.exports = (callback, port) => {
@@ -17,6 +18,9 @@ module.exports = (callback, port) => {
   const logger = pino({}, fs.createWriteStream('test-server.log'))
   const addLoggers = pinoHTTP({ logger })
   process.env.CSRF_KEY = csrf.randomKey()
+  const keys = signatures.keys()
+  process.env.PUBLIC_KEY = keys.publicKey
+  process.env.PRIVATE_KEY = keys.privateKey
   let directory
   let webServer
   let stripeCLI

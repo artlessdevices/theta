@@ -79,6 +79,8 @@ exports.license = ({
   bcc,
   handle,
   project,
+  orderID,
+  signature,
   price,
   docxBuffer
 }, callback) => {
@@ -95,6 +97,10 @@ A copy of your license is attached.
 Project: <${process.env.BASE_HREF}/~${handle}/${project}>
 
 Price: $${price.toString()}
+
+Order ID: \`${orderID}\`
+
+Cryptographic Signature: \`${signature}\`
     `.trim(),
     attachments: [
       {
