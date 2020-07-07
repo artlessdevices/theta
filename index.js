@@ -2586,7 +2586,6 @@ function serveStripeWebhook (request, response) {
                   date,
                   term: 'forever'
                 }
-                console.error(blanks)
                 cfDOCX(
                   parsed.form,
                   cfPrepareBlanks(blanks, parsed.directions),
