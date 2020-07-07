@@ -2092,6 +2092,9 @@ function serveProjectPage (request, response) {
               action: '/buy',
               sessionID: request.session.id
             }),
+            name: accountValue('name'),
+            location: accountValue('location'),
+            email: accountValue('email'),
             handle: { value: data.account.handle },
             project: { value: data.project }
           })
@@ -2101,6 +2104,11 @@ function serveProjectPage (request, response) {
   </body>
 </html>
     `)
+
+    function accountValue (key) {
+      if (!request.account) return {}
+      return { value: request.account[key] }
+    }
   })
 
   function read (read, name, typeString) {

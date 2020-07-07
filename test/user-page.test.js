@@ -117,13 +117,16 @@ tape('user page licenses', test => {
       .then(() => login({ browser, port, handle: bob.handle, password: bob.password }))
       // Buy a license.
       .then(() => browser.navigateTo(`http://localhost:${port}/~${ana.handle}/${project}`))
-      // Fill in customer details.
+      // Confirm customer details are already prefilled.
       .then(() => browser.$('#buyForm input[name=name]'))
-      .then(name => name.addValue(bob.name))
+      .then(name => name.getValue())
+      .then(value => test.equal(value, bob.name, 'prefilled name'))
       .then(() => browser.$('#buyForm input[name=email]'))
-      .then(email => email.addValue(bob.email))
+      .then(email => email.getValue())
+      .then(value => test.equal(value, bob.email, 'prefilled e-mail'))
       .then(() => browser.$('#buyForm input[name=location]'))
-      .then(email => email.addValue(bob.location))
+      .then(location => location.getValue())
+      .then(value => test.equal(value, bob.location, 'prefilled location'))
       // Enter credit card information.
       .then(() => browser.$('iframe'))
       .then((frame) => browser.switchToFrame(frame))
