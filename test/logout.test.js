@@ -22,6 +22,8 @@ tape('GET ' + path, test => {
 })
 
 tape('log out', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'ana'
   const password = 'test password'
   const email = 'ana@example.com'
@@ -31,7 +33,7 @@ tape('log out', test => {
       .then(loaded => { browser = loaded })
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) return reject(error)
           resolve()
@@ -59,11 +61,15 @@ tape('log out', test => {
 
 tape('log in as ana, log in as bob', test => {
   const ana = {
+    name: 'Ana Tester',
+    location: 'US-CA',
     handle: 'ana',
     password: 'ana password',
     email: 'ana@example.com'
   }
   const bob = {
+    name: 'Bobj Tester',
+    location: 'US-NY',
     handle: 'bob',
     password: 'bob password',
     email: 'bob@example.com'
@@ -76,6 +82,8 @@ tape('log in as ana, log in as bob', test => {
         signup({
           browser,
           port,
+          name: ana.name,
+          location: ana.location,
           handle: ana.handle,
           password: ana.password,
           email: ana.email
@@ -88,6 +96,8 @@ tape('log in as ana, log in as bob', test => {
         signup({
           browser,
           port,
+          name: bob.name,
+          location: bob.location,
           handle: bob.handle,
           password: bob.password,
           email: bob.email

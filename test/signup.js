@@ -1,20 +1,29 @@
 const assert = require('assert')
 const mail = require('../mail').events
 
-module.exports = (options, callback) => {
-  assert(options.browser)
-  assert(Number.isSafeInteger(options.port))
-  assert(typeof options.handle === 'string')
-  assert(typeof options.password === 'string')
-  assert(typeof options.email === 'string')
-  const browser = options.browser
-  const port = options.port
-  const handle = options.handle
-  const password = options.password
-  const email = options.email
+module.exports = ({
+  name,
+  location,
+  handle,
+  password,
+  email,
+  browser,
+  port
+}, callback) => {
+  assert(browser)
+  assert(Number.isSafeInteger(port))
+  assert(typeof name === 'string')
+  assert(typeof location === 'string')
+  assert(typeof handle === 'string')
+  assert(typeof password === 'string')
+  assert(typeof email === 'string')
   browser.navigateTo('http://localhost:' + port)
     .then(() => browser.$('a=Sign Up'))
     .then(a => a.click())
+    .then(() => browser.$('#signupForm input[name="name"]'))
+    .then(input => input.addValue(name))
+    .then(() => browser.$('#signupForm input[name="location"]'))
+    .then(input => input.addValue(location))
     .then(() => browser.$('#signupForm input[name="email"]'))
     .then(input => input.addValue(email))
     .then(() => browser.$('#signupForm input[name="handle"]'))

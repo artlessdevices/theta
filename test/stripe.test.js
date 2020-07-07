@@ -6,6 +6,8 @@ const timeout = require('./timeout')
 const webdriver = require('./webdriver')
 
 tape('Stripe Connect', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const password = 'test password'
   const email = 'tester@example.com'
@@ -15,7 +17,7 @@ tape('Stripe Connect', test => {
       .then(loaded => { browser = loaded })
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) return reject(error)
           resolve()

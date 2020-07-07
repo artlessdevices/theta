@@ -21,6 +21,8 @@ tape('GET ' + path, test => {
 })
 
 tape('reset password', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const password = 'test password'
   const email = 'tester@example.com'
@@ -30,7 +32,7 @@ tape('reset password', test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           test.ifError(error, 'no signup error')
           browser.navigateTo('http://localhost:' + port)

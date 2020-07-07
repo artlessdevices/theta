@@ -7,6 +7,8 @@ const verifyLogIn = require('./verify-login')
 const webdriver = require('./webdriver')
 
 tape('change e-mail', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const password = 'test password'
   const oldEMail = 'old@example.com'
@@ -18,7 +20,7 @@ tape('change e-mail', test => {
       // Sign up.
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email: oldEMail
+          browser, port, name, location, handle, password, email: oldEMail
         }, error => {
           if (error) return reject(error)
           resolve()
@@ -68,6 +70,8 @@ tape('change e-mail', test => {
 })
 
 tape('change e-mail to existing', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const password = 'test password'
   const email = 'test@example.com'
@@ -77,7 +81,7 @@ tape('change e-mail to existing', test => {
       .then(loaded => { browser = loaded })
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) return reject(error)
           resolve()

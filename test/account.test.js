@@ -22,6 +22,8 @@ tape('GET ' + path, test => {
 })
 
 tape('browse ' + path, test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'ana'
   const password = 'ana password'
   const email = 'ana@example.com'
@@ -31,7 +33,7 @@ tape('browse ' + path, test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) reject(error)
           resolve()

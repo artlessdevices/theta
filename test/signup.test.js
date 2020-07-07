@@ -46,6 +46,8 @@ tape('browse ' + path, test => {
 })
 
 tape('sign up', test => {
+  const name = 'Super Tester'
+  const location = 'US-CA'
   const email = 'test@example.com'
   const handle = 'tester'
   const password = 'test password'
@@ -56,6 +58,10 @@ tape('sign up', test => {
       .then(() => browser.navigateTo('http://localhost:' + port))
       .then(() => browser.$('a=Sign Up'))
       .then(a => a.click())
+      .then(() => browser.$('#signupForm input[name="name"]'))
+      .then(input => input.addValue(name))
+      .then(() => browser.$('#signupForm input[name="location"]'))
+      .then(input => input.addValue(location))
       .then(() => browser.$('#signupForm input[name="email"]'))
       .then(input => input.addValue(email))
       .then(() => browser.$('#signupForm input[name="handle"]'))
@@ -109,6 +115,8 @@ tape('sign up', test => {
 tape('sign up same handle', test => {
   const firstEMail = 'first@example.com'
   const secondEMail = 'first@example.com'
+  const name = 'Super Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const password = 'test password'
   server((port, done) => {
@@ -118,7 +126,7 @@ tape('sign up same handle', test => {
       // Sign up using the handle.
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle, password, email: firstEMail
+          browser, port, name, location, handle, password, email: firstEMail
         }, error => {
           if (error) reject(error)
           resolve()
@@ -168,6 +176,8 @@ tape('sign up same handle', test => {
 })
 
 tape('sign up same email', test => {
+  const name = 'Super Tester'
+  const location = 'US-CA'
   const email = 'first@example.com'
   const firstHandle = 'first'
   const secondHandle = 'second'
@@ -178,7 +188,7 @@ tape('sign up same email', test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle: firstHandle, password, email
+          browser, port, name, location, handle: firstHandle, password, email
         }, error => {
           if (error) reject(error)
           resolve()

@@ -6,6 +6,8 @@ const verifyLogIn = require('./verify-login')
 const webdriver = require('./webdriver')
 
 tape('change password', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'tester'
   const oldPassword = 'old password'
   const newPassword = 'new password'
@@ -16,7 +18,7 @@ tape('change password', test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         signup({
-          browser, port, handle, password: oldPassword, email
+          browser, port, name, location, handle, password: oldPassword, email
         }, error => {
           test.ifError(error, 'no signup error')
           browser.navigateTo('http://localhost:' + port)

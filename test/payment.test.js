@@ -6,6 +6,8 @@ const tape = require('tape')
 const timeout = require('./timeout')
 const webdriver = require('./webdriver')
 
+const name = 'Ana Tester'
+const location = 'US-CA'
 const handle = 'ana'
 const password = 'ana password'
 const email = 'ana@example.com'
@@ -30,11 +32,11 @@ const testNumbers = {
 tape('declined cards', test => {
   const customerName = 'Jon Doe'
   const customerEMail = 'jon@exaple.com'
-  const customerJurisdiction = 'US-CA'
+  const customerLocation = 'US-CA'
   server(async (port, done) => {
     const browser = await webdriver()
     await new Promise((resolve, reject) => signup({
-      browser, port, handle, password, email
+      browser, port, name, location, handle, password, email
     }, error => {
       if (error) reject(error)
       resolve()
@@ -61,8 +63,8 @@ tape('declined cards', test => {
       await nameInput.addValue(customerName)
       const emailInput = await browser.$('#buyForm input[name=email]')
       await emailInput.addValue(customerEMail)
-      const jurisdictionInput = await browser.$('#buyForm input[name=jurisdiction]')
-      await jurisdictionInput.addValue(customerJurisdiction)
+      const locationInput = await browser.$('#buyForm input[name=location]')
+      await locationInput.addValue(customerLocation)
       // Enter credit card information.
       const iframe = await browser.$('iframe')
       await browser.switchToFrame(iframe)

@@ -9,6 +9,8 @@ const tape = require('tape')
 const timeout = require('./timeout')
 const webdriver = require('./webdriver')
 
+const name = 'Ana Tester'
+const location = 'US-CA'
 const handle = 'ana'
 const password = 'ana password'
 const email = 'ana@example.com'
@@ -20,14 +22,14 @@ const category = 'library'
 tape('project page', test => {
   const customerName = 'Jon Doe'
   const customerEMail = 'jon@exaple.com'
-  const customerJurisdiction = 'US-CA'
+  const customerLocation = 'US-CA'
   server((port, done) => {
     let browser, cardNumber
     webdriver()
       .then(loaded => { browser = loaded })
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) reject(error)
           resolve()
@@ -66,8 +68,8 @@ tape('project page', test => {
       .then(name => name.addValue(customerName))
       .then(() => browser.$('#buyForm input[name=email]'))
       .then(email => email.addValue(customerEMail))
-      .then(() => browser.$('#buyForm input[name=jurisdiction]'))
-      .then(email => email.addValue(customerJurisdiction))
+      .then(() => browser.$('#buyForm input[name=location]'))
+      .then(email => email.addValue(customerLocation))
       // Enter credit card information.
       .then(() => browser.$('iframe'))
       .then((frame) => browser.switchToFrame(frame))
@@ -167,7 +169,7 @@ tape('project JSON', test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) reject(error)
           resolve()

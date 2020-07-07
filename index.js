@@ -19,7 +19,7 @@ const gravatar = require('gravatar')
 const html = require('./html')
 const https = require('https')
 const iso31662 = require('iso-3166-2')
-const jurisdictions = require('./jurisdictions')
+const locations = require('./locations')
 const mail = require('./mail')
 const markdown = require('./markdown')
 const notify = require('./notify')
@@ -367,6 +367,14 @@ function serveSignUp (request, response) {
   const title = 'Sign Up'
 
   const fields = {
+    name: {
+      filter: e => e.trim(),
+      validate: e => e.length >= 3
+    },
+    location: {
+      filter: e => e.toUpperCase().trim(),
+      validate: code => locations.includes(code)
+    },
     email: {
       filter: e => e.toLowerCase().trim(),
       validate: e => EMAIL_RE.test(e)
@@ -430,9 +438,7 @@ function serveSignUp (request, response) {
                 handle,
                 email,
                 passwordHash,
-                // TODO: Require name and location on signup.
                 name: null,
-                // TODO: Change account location to jurisdiction.
                 location: null,
                 urls: [],
                 badges: {},
@@ -543,6 +549,28 @@ function serveSignUp (request, response) {
       <form id=signupForm method=post>
         ${data.error}
         ${data.csrf}
+        <p>
+          <label for=name>Name</label>
+          <input
+              name=name
+              pattern="^.{3,}$"
+              value="${escapeHTML(data.name.value || '')}"
+              autofocus
+              required>
+        </p>
+        <p>
+          <label for=location>Location</label>
+          <input
+            name=location
+            value="${escapeHTML(data.location.value || '')}"
+            type=text
+            list=locations
+            autocomplete=off
+            required>
+        </p>
+        <datalist id=locations>
+          ${locationOptions()}
+        </datalist>
         ${eMailInput({
           autofocus: true,
           value: data.email.value
@@ -554,8 +582,7 @@ function serveSignUp (request, response) {
               name=handle
               type=text
               pattern="^${handles.pattern}$"
-              value="${escapeHTML(data.handle.value)}"
-              autofocus
+              value="${escapeHTML(data.handle.value || '')}"
               required>
         </p>
         ${data.handle.error}
@@ -2073,7 +2100,7 @@ function serveProjectPage (request, response) {
 }
 
 function buyForm (data) {
-  ['account', 'project', 'name', 'email', 'jurisdiction', 'terms']
+  ['account', 'project', 'name', 'email', 'location', 'terms']
     .forEach(key => {
       if (!data[key]) data[key] = {}
     })
@@ -2101,19 +2128,19 @@ function buyForm (data) {
     </label>
     ${data.name.error}
     <label>
-      Jurisdiction
+      Location
       <input
-        name=jurisdiction
-        value="${escapeHTML(data.jurisdiction.value || '')}"
+        name=location
+        value="${escapeHTML(data.location.value || '')}"
         type=text
-        list=jurisdictions
+        list=locations
         autocomplete=off
         required>
     </label>
-    <datalist id=jurisdictions>
-      ${jurisdictionOptions()}
+    <datalist id=locations>
+      ${locationOptions()}
     </datalist>
-    ${data.jurisdiction.error}
+    ${data.location.error}
     <label>
       E-Mail
       <input
@@ -2147,8 +2174,8 @@ function buyForm (data) {
   `
 }
 
-function jurisdictionOptions () {
-  return jurisdictions.map(function (code) {
+function locationOptions () {
+  return locations.map(function (code) {
     var parsed = iso31662.subdivision(code)
     return html`
 <option value="${escapeHTML(code)}">
@@ -2180,8 +2207,8 @@ function serveBuy (request, response) {
       filter: e => e.toLowerCase().trim(),
       validate: e => EMAIL_RE.test(e)
     },
-    jurisdiction: {
-      validate: code => jurisdictions.includes(code)
+    location: {
+      validate: code => locations.includes(code)
     },
     terms: {
       validate: e => e === 'accepted'
@@ -2200,7 +2227,7 @@ function serveBuy (request, response) {
   })(request, response)
 
   function processBody (request, body, done) {
-    const { handle, project, name, email, jurisdiction, token } = body
+    const { handle, project, name, email, location, token } = body
     let accountData, projectData
     let orderID, paymentIntent
     const date = new Date().toISOString()
@@ -2250,7 +2277,7 @@ function serveBuy (request, response) {
           project,
           name,
           email,
-          jurisdiction,
+          location,
           projectData: projectData,
           fulfilled: false
         }, error => {
@@ -2325,7 +2352,7 @@ Handle: ${handle}
 Project: ${project}
 
 Name: ${name}
-Jurisdiction: ${jurisdiction}
+Location: ${location}
 E-Mail: ${email}
 
 Order: ${orderID}
@@ -2622,7 +2649,7 @@ function serveStripeWebhook (request, response) {
                 date,
                 name: order.name,
                 email: order.email,
-                jurisdiction: order.jurisdiction
+                location: order.location
               }
               data.customers.push(entry)
               done()

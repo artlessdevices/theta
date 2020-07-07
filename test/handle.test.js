@@ -7,6 +7,8 @@ const webdriver = require('./webdriver')
 
 const path = '/handle'
 
+const name = 'Ana Tester'
+const location = 'US-CA'
 const handle = 'ana'
 const password = 'ana password'
 const email = 'ana@example.com'
@@ -30,7 +32,7 @@ tape('discover handle', test => {
       .then(loaded => { browser = loaded })
       .then(() => {
         return new Promise((resolve, reject) => signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) reject(error)
           mail.once('sent', options => {

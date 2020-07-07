@@ -43,6 +43,8 @@ tape('browse ' + path, test => {
 })
 
 tape('sign in', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'ana'
   const password = 'test password'
   const email = 'ana@example.com'
@@ -52,7 +54,7 @@ tape('sign in', test => {
       .then(loaded => { browser = loaded })
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) return reject(error)
           resolve()
@@ -145,6 +147,8 @@ tape('sign in with bad password', test => {
 })
 
 tape('lockout', test => {
+  const name = 'Ana Tester'
+  const location = 'US-CA'
   const handle = 'ana'
   const password = 'test password'
   const email = 'ana@example.com'
@@ -154,7 +158,7 @@ tape('lockout', test => {
       .then(loaded => { browser = loaded })
       .then(() => new Promise((resolve, reject) => {
         signup({
-          browser, port, handle, password, email
+          browser, port, name, location, handle, password, email
         }, error => {
           if (error) return reject(error)
           resolve()
