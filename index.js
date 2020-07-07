@@ -2246,8 +2246,12 @@ function serveBuy (request, response) {
         storage.order.write(orderID, {
           orderID,
           date,
-          body,
-          project: projectData,
+          handle,
+          project,
+          name,
+          email,
+          jurisdiction,
+          projectData: projectData,
           fulfilled: false
         }, error => {
           if (error) {
@@ -2490,8 +2494,8 @@ function serveStripeWebhook (request, response) {
           return response.end()
         }
 
-        const handle = order.body.handle
-        const project = order.body.project
+        const handle = order.handle
+        const project = order.project
         let account, signature
         const docxPath = storage.license.path(orderID) + '.docx'
         const pdfPath = storage.license.path(orderID) + '.pdf'
@@ -2525,7 +2529,7 @@ function serveStripeWebhook (request, response) {
                 // TODO: Sign licenses.
                 cfDOCX(
                   parsed.form,
-                  cfPrepareBlanks(order.body, parsed.directions),
+                  cfPrepareBlanks(order, parsed.directions),
                   {
                     title: parsed.frontMatter.title,
                     edition: parsed.frontMatter.edition,
@@ -2594,13 +2598,13 @@ function serveStripeWebhook (request, response) {
               cc = account.email
             }
             notify.license({
-              to: order.body.email,
+              to: order.email,
               cc,
               bcc: process.env.ADMIN_EMAIL,
               handle,
               project,
               orderID,
-              price: order.project.price,
+              price: order.projectData.price,
               signature
             }, error => {
               if (error) return done(error)
@@ -2616,9 +2620,9 @@ function serveStripeWebhook (request, response) {
               const entry = {
                 orderID,
                 date,
-                name: order.body.name,
-                email: order.body.email,
-                jurisdiction: order.body.jurisdiction
+                name: order.name,
+                email: order.email,
+                jurisdiction: order.jurisdiction
               }
               data.customers.push(entry)
               done()
@@ -2628,7 +2632,7 @@ function serveStripeWebhook (request, response) {
 
           // Add to list of orders by e-mail.
           done => storage.email.update(
-            order.body.email,
+            order.email,
             (data, done) => {
               data.orders.push(orderID)
               done()
