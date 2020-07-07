@@ -1,6 +1,6 @@
 ---
 title: stricteq Standard Software License
-edition: 1e2d
+edition: 1e3d
 ---
 
 # Details
@@ -23,7 +23,7 @@ All the licenses granted under these terms are conditional on payment of the _Pr
 
 # Scope
 
-The **Licensed Contributions** are the contributions the _Developer_ has made to the _Software_, as well as any contributions the _Developer_ makes to the _Software_ in the future.  _Licensed Contributions_ do not include any contributions the _Developer_ makes to the _Software_ in the future with a different or additional identifier.
+The **Licensed Contributions** are the contributions the _Developer_ has made to the _Software_, as well as any contributions the _Developer_ makes to the _Software_ in the future.  _Licensed Contributions_ do not include any contributions the _Developer_ makes to the _Software_ to any future version of the _Software_ for which the _Developer_ sells separate licenses.
 
 # Copyright
 
