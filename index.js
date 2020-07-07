@@ -2553,7 +2553,6 @@ function serveStripeWebhook (request, response) {
                 } catch (error) {
                   request.log.error(error, 'Common Form parse')
                 }
-                // TODO: Sign licenses.
                 cfDOCX(
                   parsed.form,
                   cfPrepareBlanks(order, parsed.directions),
