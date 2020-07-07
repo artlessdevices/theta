@@ -409,9 +409,9 @@ function serveSignUp (request, response) {
 
       // Check if e-mail already used.
       done => {
-        storage.email.read(email, (error, handle) => {
+        storage.email.read(email, (error, record) => {
           if (error) return done(error)
-          if (!handle) return done()
+          if (!record) return done()
           const hasAccount = new Error('e-mail address has an account')
           hasAccount.hasAccount = true
           hasAccount.statusCode = 401
@@ -448,7 +448,15 @@ function serveSignUp (request, response) {
               }, done)
             },
             done => {
-              storage.email.write(email, handle, done)
+              const data = { handle }
+              storage.email.update(email, data, (error, updated) => {
+                if (error) return done(error)
+                if (!updated) {
+                  data.orders = []
+                  return storage.email.write(email, data, done)
+                }
+                done()
+              })
             }
           ], error => {
             if (error) return done(error)
@@ -1035,12 +1043,12 @@ function serveHandle (request, response) {
 
   function processBody (request, body, done) {
     const email = body.email
-    storage.email.read(email, (error, handle) => {
+    storage.email.read(email, (error, record) => {
       if (error) return done(error)
-      if (!handle) return done()
+      if (!record) return done()
       notify.handleReminder({
         to: email,
-        handle
+        handle: record.handle
       }, done)
     })
   }
@@ -1115,9 +1123,9 @@ function serveEMail (request, response) {
   function processBody (request, body, done) {
     const handle = request.account.handle
     const email = body.email
-    storage.email.read(email, (error, existingHandle) => {
+    storage.email.read(email, (error, record) => {
       if (error) return done(error)
-      if (existingHandle) {
+      if (record) {
         const error = new Error('e-mail already has an account')
         error.fieldName = 'email'
         error.statusCode = 400
@@ -2613,6 +2621,16 @@ function serveStripeWebhook (request, response) {
                 jurisdiction: order.body.jurisdiction
               }
               data.customers.push(entry)
+              done()
+            },
+            done
+          ),
+
+          // Add to list of orders by e-mail.
+          done => storage.email.update(
+            order.body.email,
+            (data, done) => {
+              data.orders.push(orderID)
               done()
             },
             done
