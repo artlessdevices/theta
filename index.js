@@ -402,19 +402,6 @@ function serveSignUp (request, response) {
   function processBody (request, body, done) {
     const { handle, email, password } = body
     runSeries([
-      // Check handle availability.
-      done => {
-        storage.account.exists(handle, (error, exists) => {
-          if (error) return done(error)
-          if (exists) {
-            const error = new Error('handle taken')
-            error.statusCode = 400
-            return done(error)
-          }
-          done()
-        })
-      },
-
       // Check if e-mail already used.
       done => {
         storage.email.read(email, (error, record) => {
@@ -464,8 +451,14 @@ function serveSignUp (request, response) {
                 done()
               })
             }
-          ], error => {
+          ], (error, success) => {
             if (error) return done(error)
+            if (!success) {
+              const error = new Error('handle taken')
+              error.handle = handle
+              error.statusCode = 400
+              return done(error)
+            }
             request.log.info('recorded account')
             done()
           })
