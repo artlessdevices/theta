@@ -10,6 +10,14 @@ const through2 = require('through2')
 module.exports = {
   account: simpleFiles('accounts'),
   order: simpleFiles('orders'),
+  license: {
+    mkdirp: done => fs.mkdir(
+      path.join(process.env.DIRECTORY, 'licenses'),
+      { recursive: true },
+      done
+    ),
+    path: id => path.join(process.env.DIRECTORY, 'licenses', id)
+  },
   project: simpleFiles('projects'),
   email: simpleFiles('emails'),
   token: simpleFiles('tokens'),

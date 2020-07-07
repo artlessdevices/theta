@@ -1,8 +1,10 @@
 // Send E-Mail Nofications
 
 const constants = require('./constants')
+const fs = require('fs')
 const mail = require('./mail')
 const markdown = require('./markdown')
+const storage = require('./storage')
 
 exports.confirmEMail = ({ to, handle, url }, callback) => {
   const text = `
@@ -81,8 +83,7 @@ exports.license = ({
   project,
   orderID,
   signature,
-  price,
-  docxBuffer
+  price
 }, callback) => {
   send({
     to,
@@ -104,8 +105,10 @@ Cryptographic Signature: \`${signature}\`
     `.trim(),
     attachments: [
       {
-        filename: 'license.docx',
-        content: docxBuffer
+        filename: 'license.pdf',
+        content: fs.createReadStream(
+          storage.license.path(orderID) + '.pdf'
+        )
       }
     ]
   }, callback)

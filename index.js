@@ -11,6 +11,7 @@ const cookie = require('cookie')
 const crypto = require('crypto')
 const csrf = require('./csrf')
 const doNotCache = require('do-not-cache')
+const docxToPDF = require('./docx-to-pdf')
 const escapeHTML = require('escape-html')
 const expired = require('./expired')
 const fs = require('fs')
@@ -2483,7 +2484,9 @@ function serveStripeWebhook (request, response) {
 
         const handle = order.body.handle
         const project = order.body.project
-        let account, docxBuffer, signature
+        let account, signature
+        const docxPath = storage.license.path(orderID) + '.docx'
+        const pdfPath = storage.license.path(orderID) + '.pdf'
         runSeries([
           // Read account.
           done => storage.account.read(handle, (error, data) => {
@@ -2495,7 +2498,10 @@ function serveStripeWebhook (request, response) {
             done()
           }),
 
-          // Generate license.
+          // Make directory for license files.
+          done => storage.license.mkdirp(done),
+
+          // Generate license .docx.
           done => {
             fs.readFile(
               path.join(__dirname, 'terms', 'license.md'),
@@ -2531,27 +2537,40 @@ function serveStripeWebhook (request, response) {
                   .generateAsync({ type: 'nodebuffer' })
                   .catch(error => done(error))
                   .then(buffer => {
-                    docxBuffer = buffer
-                    done()
+                    fs.writeFile(docxPath, buffer, error => {
+                      if (error) return done(error)
+                      request.log.info({ path: docxPath }, 'wrote .docx')
+                      done()
+                    })
                   })
               }
             )
           },
 
+          // Convert .docx to .pdf.
+          done => docxToPDF(docxPath, error => {
+            if (error) return done(error)
+            request.log.info({ path: pdfPath }, 'wrote')
+            done()
+          }),
+
           // Generate and record signature.
           done => {
-            signature = signatures.sign(
-              docxBuffer,
-              process.env.PUBLIC_KEY,
-              process.env.PRIVATE_KEY
-            )
-            request.log.info({ signature }, 'siganture')
-            storage.signature.record({
-              signature, date, orderID
-            }, error => {
+            fs.readFile(pdfPath, (error, buffer) => {
               if (error) return done(error)
-              request.log.info('recorded')
-              done()
+              signature = signatures.sign(
+                buffer,
+                process.env.PUBLIC_KEY,
+                process.env.PRIVATE_KEY
+              )
+              request.log.info({ signature }, 'signature')
+              storage.signature.record({
+                signature, date, orderID
+              }, error => {
+                if (error) return done(error)
+                request.log.info('recorded')
+                done()
+              })
             })
           },
 
@@ -2574,8 +2593,7 @@ function serveStripeWebhook (request, response) {
               project,
               orderID,
               price: order.project.price,
-              signature,
-              docxBuffer
+              signature
             }, error => {
               if (error) return done(error)
               request.log.info('license e-mail sent')
