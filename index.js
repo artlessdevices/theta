@@ -53,6 +53,7 @@ routes.set('/create', serveCreate) // create projects
 routes.set('/account', serveAccount) // account pages
 routes.set('/handle', serveHandle) // remind of handles
 routes.set('/email', serveEMail) // change account e-mail
+// TODO: Add route for users to claim additional e-mail addresses.
 routes.set('/password', servePassword) // change passwords
 routes.set('/reset', serveReset) // reset passwords
 routes.set('/confirm', serveConfirm) // confirm links in e-mails
